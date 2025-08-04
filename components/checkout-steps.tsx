@@ -9,8 +9,9 @@ interface CheckoutStepsProps {
 
 export function CheckoutSteps({ step }: CheckoutStepsProps) {
   const steps = [
-    { id: 1, name: "Dados do Cliente", description: "Informações pessoais e da viagem" },
-    { id: 2, name: "Pagamento", description: "Finalizar compra" },
+    { id: 1, name: "Dados do Cliente", description: "Informações pessoais" },
+    { id: 2, name: "Dados da Viagem", description: "Data, passageiros e bagagem" },
+    { id: 3, name: "Pagamento", description: "Finalizar compra" },
   ]
 
   return (
