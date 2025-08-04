@@ -74,7 +74,7 @@ function HeaderContent() {
             <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
               <div className="relative w-[50px] h-[40px]">
                 <Image
-                  src="/placeholder-logo.png"
+                  src="https://static.wixstatic.com/media/e086ef_e7f781063b5a413ea3b962b2fda1a323~mv2.png/v1/fill/w_131,h_106,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/02.png"
                   alt="Chofer em Londres Logo"
                   fill
                   style={{ objectFit: "contain" }}
