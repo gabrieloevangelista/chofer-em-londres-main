@@ -1,5 +1,5 @@
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
 // Verificação de variáveis de ambiente
@@ -20,8 +20,8 @@ export const supabase = supabaseUrl && supabaseAnonKey
   : null
 
 export function createSupabaseClient() {
-  if (typeof window !== 'undefined') {
-    return createClientComponentClient()
+  if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
+    return createBrowserClient(supabaseUrl, supabaseAnonKey)
   }
   return supabase
 }
