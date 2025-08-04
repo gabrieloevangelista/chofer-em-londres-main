@@ -6,7 +6,11 @@ import { Elements } from '@stripe/react-stripe-js'
 import { ReactNode } from 'react'
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-  throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY não está definida')
+  throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY não está definida nas variáveis de ambiente')
+}
+
+if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.includes('aqui')) {
+  throw new Error('Configure uma chave válida do Stripe em NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')
 }
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
