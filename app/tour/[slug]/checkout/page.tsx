@@ -101,7 +101,7 @@ export default function CheckoutPage({ params }: PageProps) {
           luggage: parseInt(formData.luggage),
           hotel: formData.hotel,
           flight: formData.flight,
-          totalPrice: tour!.price * parseInt(formData.passengers),
+          totalPrice: tour!.price, // Preço fixo para até 8 passageiros
           status: 'pending'
         }),
       })
@@ -154,7 +154,7 @@ export default function CheckoutPage({ params }: PageProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            amount: tour!.price * parseInt(formData.passengers) * 100, // Converter para centavos
+            amount: tour!.price * 100, // Preço fixo em centavos
             currency: 'gbp',
             email: formData.email,
             metadata: {
@@ -236,7 +236,7 @@ export default function CheckoutPage({ params }: PageProps) {
     )
   }
 
-  const totalPrice = tour.price * parseInt(formData.passengers)
+  const totalPrice = tour.price // Preço fixo independente do número de passageiros (até 8)
 
   return (
     <LayoutWrapper>
@@ -477,7 +477,7 @@ export default function CheckoutPage({ params }: PageProps) {
 
                   <div className="border-t pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Preço por pessoa:</span>
+                      <span>Preço fixo (até 8 passageiros):</span>
                       <span>£{tour.price}</span>
                     </div>
                     <div className="flex justify-between text-sm">
