@@ -1,4 +1,3 @@
-
 "use client"
 
 import { loadStripe } from '@stripe/stripe-js'
@@ -21,51 +20,27 @@ interface StripeProviderProps {
 }
 
 export function StripeProvider({ children, clientSecret }: StripeProviderProps) {
-  const options = clientSecret ? {
+  const options: StripeElementsOptions = {
     clientSecret,
     appearance: {
-      theme: 'stripe' as const,
+      theme: 'stripe',
       variables: {
-        colorPrimary: '#0070f3',
-        colorBackground: '#ffffff',
-        colorText: '#30313d',
-        colorDanger: '#df1b41',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        spacingUnit: '4px',
-        borderRadius: '8px',
-        focusBoxShadow: '0px 0px 0px 2px rgba(0, 112, 243, 0.4)',
-        tabIconSelectedColor: '#0070f3',
+        colorPrimary: '#0ea5e9',
       },
-      rules: {
-        '.Tab': {
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
-        },
-        '.Tab--selected': {
-          backgroundColor: '#f8fafc',
-          borderColor: '#0070f3',
-        },
-        '.Input': {
-          borderRadius: '6px',
-          border: '1px solid #e2e8f0',
-          fontSize: '14px',
-          padding: '12px',
-        },
-        '.Input--focus': {
-          borderColor: '#0070f3',
-          boxShadow: '0px 0px 0px 2px rgba(0, 112, 243, 0.2)',
-        },
-        '.Label': {
-          fontSize: '14px',
-          fontWeight: '500',
-          color: '#374151',
-          marginBottom: '6px',
-        }
-      }
     },
-    loader: 'auto',
-  } : undefined
+  }
+
+  // Verificar se o Stripe está configurado
+  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <h3 className="text-red-800 font-semibold mb-2">Configuração necessária</h3>
+        <p className="text-red-600 text-sm">
+          O sistema de pagamento está sendo configurado. Por favor, tente novamente em alguns minutos.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <Elements stripe={stripePromise} options={options}>

@@ -420,7 +420,7 @@ export default function CheckoutPage({ params }: PageProps) {
                       <p className="text-gray-600">Complete seu pagamento de forma segura</p>
                     </div>
 
-                    {clientSecret && (
+                    {clientSecret ? (
                       <StripeProvider clientSecret={clientSecret}>
                         <StripePaymentForm
                           onSuccess={handlePaymentSuccess}
@@ -429,6 +429,20 @@ export default function CheckoutPage({ params }: PageProps) {
                           clientSecret={clientSecret}
                         />
                       </StripeProvider>
+                    ) : (
+                      <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h3 className="text-yellow-800 font-semibold mb-2">Preparando pagamento...</h3>
+                        <p className="text-yellow-700 text-sm">
+                          Estamos configurando seu pagamento. Se este erro persistir, entre em contato conosco.
+                        </p>
+                        <Button 
+                          onClick={handlePrevStep} 
+                          variant="outline" 
+                          className="mt-4"
+                        >
+                          Voltar e tentar novamente
+                        </Button>
+                      </div>
                     )}
 
                     <div className="flex justify-between pt-6">
