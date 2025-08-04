@@ -1,30 +1,28 @@
-
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe-config"
 
 export async function POST(request: Request) {
   try {
-    const { amount, currency = 'gbp', metadata, email } = await request.json()
+    const { amount, currency, email, metadata } = await request.json()
+
+    console.log('Criando payment intent:', { amount, currency, email })
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
+      receipt_email: email,
       metadata,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      payment_method_types: ['card', 'google_pay', 'apple_pay'],
-      receipt_email: email || undefined,
-      setup_future_usage: 'off_session', // Para salvar método de pagamento para uso futuro
     })
 
-    return NextResponse.json({ 
-      clientSecret: paymentIntent.client_secret 
+    console.log('Payment intent criado com sucesso:', paymentIntent.id)
+
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
     })
   } catch (error) {
-    console.error("Erro ao criar Payment Intent:", error)
+    console.error('Erro ao criar payment intent:', error)
     return NextResponse.json(
-      { error: "Erro ao processar pagamento" },
+      { error: 'Erro interno do servidor', details: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }
     )
   }

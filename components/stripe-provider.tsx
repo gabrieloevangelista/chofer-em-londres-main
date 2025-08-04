@@ -30,16 +30,11 @@ export function StripeProvider({ children, clientSecret }: StripeProviderProps) 
     },
   }
 
-  // Verificar se o Stripe está configurado
-  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <h3 className="text-red-800 font-semibold mb-2">Configuração necessária</h3>
-        <p className="text-red-600 text-sm">
-          O sistema de pagamento está sendo configurado. Por favor, tente novamente em alguns minutos.
-        </p>
-      </div>
-    )
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+  if (!stripePublishableKey || stripePublishableKey.includes('your_stripe_publishable_key')) {
+    console.error('Stripe publishable key não configurada ou é um placeholder')
+    return <div>Carregando sistema de pagamento...</div>
   }
 
   return (

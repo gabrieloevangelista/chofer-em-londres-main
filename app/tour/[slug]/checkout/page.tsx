@@ -1,4 +1,3 @@
-
 "use client"
 
 import { use, useState, useEffect } from "react"
@@ -43,7 +42,7 @@ export default function CheckoutPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
   const [clientSecret, setClientSecret] = useState("")
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -107,7 +106,10 @@ export default function CheckoutPage({ params }: PageProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Erro ao salvar dados da reserva')
+        const errorText = await response.text()
+        console.error('Erro ao salvar reserva:', errorText)
+        alert('Erro ao processar reserva. Tente novamente.')
+        return
       }
 
       return await response.json()
@@ -137,7 +139,7 @@ export default function CheckoutPage({ params }: PageProps) {
       const selectedDate = new Date(formData.date)
       const diffTime = selectedDate.getTime() - today.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      
+
       if (diffDays < 5) {
         alert("A data do tour deve ser pelo menos 5 dias a partir de hoje")
         return
@@ -148,7 +150,7 @@ export default function CheckoutPage({ params }: PageProps) {
         await saveBookingData()
 
         // Criar Payment Intent
-        const response = await fetch('/api/stripe/create-payment-intent', {
+        const paymentResponse = await fetch('/api/stripe/create-payment-intent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -172,11 +174,14 @@ export default function CheckoutPage({ params }: PageProps) {
           }),
         })
 
-        if (!response.ok) {
-          throw new Error('Erro ao criar payment intent')
+        if (!paymentResponse.ok) {
+          const errorText = await paymentResponse.text()
+          console.error('Erro ao criar payment intent:', errorText)
+          alert('Erro ao inicializar pagamento. Tente novamente.')
+          return
         }
 
-        const { client_secret } = await response.json()
+        const { client_secret } = await paymentResponse.json()
         setClientSecret(client_secret)
         setCurrentStep(3)
       } catch (error) {
@@ -465,7 +470,7 @@ export default function CheckoutPage({ params }: PageProps) {
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <h3 className="font-semibold text-primary">{tour.name}</h3>
-                    
+
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Clock className="w-4 h-4" />
                       <span>{tour.duration}</span>
