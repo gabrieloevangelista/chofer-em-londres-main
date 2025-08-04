@@ -1,46 +1,40 @@
 
 "use client"
 
-import React, { useEffect, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
+import { ReactNode } from 'react'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+  throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY não está definida')
+}
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface StripeProviderProps {
-  children: React.ReactNode
-  clientSecret: string
+  children: ReactNode
+  clientSecret?: string
 }
 
 export function StripeProvider({ children, clientSecret }: StripeProviderProps) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
-  const options = {
+  const options = clientSecret ? {
     clientSecret,
     appearance: {
       theme: 'stripe' as const,
       variables: {
-        colorPrimary: '#2563eb',
+        colorPrimary: '#0070f3',
         colorBackground: '#ffffff',
-        colorText: '#1f2937',
-        colorDanger: '#dc2626',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        colorText: '#30313d',
+        colorDanger: '#df1b41',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         spacingUnit: '4px',
         borderRadius: '8px',
       },
     },
-  }
+  } : undefined
 
   return (
-    <Elements options={options} stripe={stripePromise}>
+    <Elements stripe={stripePromise} options={options}>
       {children}
     </Elements>
   )

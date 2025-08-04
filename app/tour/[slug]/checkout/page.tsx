@@ -1,13 +1,14 @@
+
 "use client"
 
 import { use, useState, useEffect } from "react"
-import { useParams, notFound } from "next/navigation"
+import { notFound } from "next/navigation"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react"
+import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight, PoundSterling } from "lucide-react"
 import { getTourBySlug } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
 import {
@@ -26,6 +27,9 @@ import { cn } from "@/lib/utils"
 import { format, addDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Calendar } from "@/components/ui/calendar"
+import { CheckoutSteps } from "@/components/checkout-steps"
+import { StripeProvider } from "@/components/stripe-provider"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
 
 interface PageProps {
   params: Promise<{
@@ -37,6 +41,9 @@ export default function CheckoutPage({ params }: PageProps) {
   const { slug } = use(params)
   const [tour, setTour] = useState<TouristAttraction | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [clientSecret, setClientSecret] = useState("")
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,15 +53,8 @@ export default function CheckoutPage({ params }: PageProps) {
     luggage: "0",
     hotel: "",
     flight: "",
-    postalCode: "",
-    cardNumber: "",
-    cardExpiry: "",
-    cardCvc: "",
-    cardName: "",
   })
 
-  const [date, setDate] = useState<Date>()
-  const [currentStep, setCurrentStep] = useState(1)
   const minimumDate = addDays(new Date(), 5)
 
   useEffect(() => {
@@ -83,17 +83,60 @@ export default function CheckoutPage({ params }: PageProps) {
     }))
   }
 
-  const handleNextStep = () => {
-    setCurrentStep(prev => prev + 1)
+  const handleNextStep = async () => {
+    if (currentStep === 1) {
+      // Validar dados do formulário
+      if (!formData.name || !formData.email || !formData.phone || !formData.date || !formData.hotel) {
+        alert("Por favor, preencha todos os campos obrigatórios")
+        return
+      }
+
+      try {
+        // Criar Payment Intent
+        const response = await fetch('/api/stripe/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: tour!.price * 100, // Converter para centavos
+            currency: 'gbp',
+            metadata: {
+              tourId: tour!.id,
+              tourName: tour!.name,
+              tourDate: formData.date!.toISOString(),
+              passengers: formData.passengers,
+              luggage: formData.luggage,
+              hotel: formData.hotel,
+              flight: formData.flight,
+              customerName: formData.name,
+              customerEmail: formData.email,
+              customerPhone: formData.phone,
+            }
+          }),
+        })
+
+        const { client_secret } = await response.json()
+        setClientSecret(client_secret)
+        setCurrentStep(2)
+      } catch (error) {
+        console.error('Erro ao criar payment intent:', error)
+        alert('Erro ao processar pagamento. Tente novamente.')
+      }
+    }
   }
 
   const handlePrevStep = () => {
     setCurrentStep(prev => prev - 1)
   }
 
-  const handleSubmit = async () => {
-    // TODO: Implementar integração com Stripe
-    console.log('Form data:', formData)
+  const handlePaymentSuccess = () => {
+    window.location.href = `/tour/${slug}/success?session_id=success`
+  }
+
+  const handlePaymentError = (error: string) => {
+    console.error('Erro no pagamento:', error)
+    alert('Erro no pagamento: ' + error)
   }
 
   const generatePassengerOptions = () => {
@@ -133,233 +176,249 @@ export default function CheckoutPage({ params }: PageProps) {
     )
   }
 
+  const totalPrice = tour.price * parseInt(formData.passengers)
+
   return (
     <LayoutWrapper>
-      <div className="container mx-auto py-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-primary">{tour.name}</h1>
-            <div className="text-xl font-semibold text-primary">
-              £{tour.price}
-            </div>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center mb-8">
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-primary mb-2">{tour.name}</h1>
             <CheckoutSteps step={currentStep} />
           </div>
 
-          <Card className="p-6">
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome completo</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Seu nome completo"
-                    />
-                  </div>
+          {/* Layout de 2 colunas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Coluna principal - Formulário */}
+            <div className="lg:col-span-2">
+              <Card className="p-6">
+                {currentStep === 1 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Informações da reserva</h2>
+                      <p className="text-gray-600">Preencha seus dados para continuar</p>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="+44 000 0000"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Data do tour</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.date ? (
-                            format(formData.date, "PPP", { locale: ptBR })
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.date}
-                          onSelect={(date) => handleInputChange('date', date)}
-                          locale={ptBR}
-                          disabled={(date) =>
-                            date < new Date() || date > new Date(2025, 11, 31)
-                          }
-                          initialFocus
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nome completo *</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Seu nome completo"
+                          required
                         />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Número de passageiros</Label>
-                    <Select
-                      value={formData.passengers}
-                      onValueChange={(value) => handleInputChange('passengers', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {generatePassengerOptions()}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          placeholder="seu@email.com"
+                          required
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Número de malas</Label>
-                    <Select
-                      value={formData.luggage}
-                      onValueChange={(value) => handleInputChange('luggage', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {generateLuggageOptions()}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Telefone *</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="+44 000 0000"
+                          required
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="hotel">Hotel/Endereço</Label>
-                    <Input
-                      id="hotel"
-                      value={formData.hotel}
-                      onChange={(e) => handleInputChange('hotel', e.target.value)}
-                      placeholder="Nome do hotel ou endereço"
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label>Data do tour *</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-white",
+                                !formData.date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.date ? (
+                                format(formData.date, "PPP", { locale: ptBR })
+                              ) : (
+                                <span>Selecione uma data</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-white">
+                            <Calendar
+                              mode="single"
+                              selected={formData.date}
+                              onSelect={(date) => handleInputChange('date', date)}
+                              locale={ptBR}
+                              disabled={(date) =>
+                                date < minimumDate || date > new Date(2025, 11, 31)
+                              }
+                              initialFocus
+                              className="bg-white"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="flight">Número do voo (opcional)</Label>
-                    <Input
-                      id="flight"
-                      value={formData.flight}
-                      onChange={(e) => handleInputChange('flight', e.target.value)}
-                      placeholder="Ex: BA1234"
-                    />
-                  </div>
-                </div>
+                      <div className="space-y-2">
+                        <Label>Número de passageiros</Label>
+                        <Select
+                          value={formData.passengers}
+                          onValueChange={(value) => handleInputChange('passengers', value)}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {generatePassengerOptions()}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                <div className="flex justify-end">
-                  <Button onClick={handleNextStep}>
-                    Próximo
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
+                      <div className="space-y-2">
+                        <Label>Número de malas</Label>
+                        <Select
+                          value={formData.luggage}
+                          onValueChange={(value) => handleInputChange('luggage', value)}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {generateLuggageOptions()}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Número do cartão</Label>
-                    <Input
-                      id="cardNumber"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                      placeholder="1234 5678 9012 3456"
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="hotel">Hotel/Endereço *</Label>
+                        <Input
+                          id="hotel"
+                          value={formData.hotel}
+                          onChange={(e) => handleInputChange('hotel', e.target.value)}
+                          placeholder="Nome do hotel ou endereço"
+                          required
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardExpiry">Data de expiração</Label>
-                      <Input
-                        id="cardExpiry"
-                        value={formData.cardExpiry}
-                        onChange={(e) => handleInputChange('cardExpiry', e.target.value)}
-                        placeholder="MM/AA"
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="flight">Número do voo (opcional)</Label>
+                        <Input
+                          id="flight"
+                          value={formData.flight}
+                          onChange={(e) => handleInputChange('flight', e.target.value)}
+                          placeholder="Ex: BA1234"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="cardCvc">CVC</Label>
-                      <Input
-                        id="cardCvc"
-                        value={formData.cardCvc}
-                        onChange={(e) => handleInputChange('cardCvc', e.target.value)}
-                        placeholder="123"
+                    <div className="flex justify-end pt-6">
+                      <Button onClick={handleNextStep} size="lg">
+                        Continuar para pagamento
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Pagamento</h2>
+                      <p className="text-gray-600">Complete seu pagamento de forma segura</p>
+                    </div>
+
+                    <StripeProvider clientSecret={clientSecret}>
+                      <StripePaymentForm
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        total={totalPrice}
                       />
+                    </StripeProvider>
+
+                    <div className="flex justify-between pt-6">
+                      <Button variant="outline" onClick={handlePrevStep}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Voltar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* Coluna lateral - Resumo da compra */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-4">
+                <CardHeader>
+                  <CardTitle className="text-lg">Resumo da reserva</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-primary">{tour.name}</h3>
+                    
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span>{tour.duration}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span>{tour.category}</span>
+                    </div>
+
+                    {formData.date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>{format(formData.date, "PPP", { locale: ptBR })}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users className="w-4 h-4" />
+                      <span>{formData.passengers} {parseInt(formData.passengers) === 1 ? 'passageiro' : 'passageiros'}</span>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Nome no cartão</Label>
-                    <Input
-                      id="cardName"
-                      value={formData.cardName}
-                      onChange={(e) => handleInputChange('cardName', e.target.value)}
-                      placeholder="Nome como está no cartão"
-                    />
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Preço por pessoa:</span>
+                      <span>£{tour.price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Passageiros:</span>
+                      <span>{formData.passengers}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                      <span>Total:</span>
+                      <span className="flex items-center gap-1">
+                        <PoundSterling className="w-4 h-4" />
+                        {totalPrice}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="postalCode">CEP/Código postal</Label>
-                    <Input
-                      id="postalCode"
-                      value={formData.postalCode}
-                      onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      placeholder="12345-678"
-                    />
+                  <div className="bg-green-50 p-3 rounded-lg text-sm text-green-700">
+                    ✓ Confirmação imediata por email
+                    <br />
+                    ✓ Cancelamento grátis até 24h antes
                   </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevStep}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Voltar
-                  </Button>
-                  <Button onClick={handleSubmit}>
-                    Finalizar pagamento
-                  </Button>
-                </div>
-              </div>
-            )}
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .step-item {
-          @apply flex items-center justify-center w-36 h-10 bg-gray-100 rounded-full font-medium;
-        }
-        .step-item.active {
-          @apply bg-primary text-white;
-        }
-        .line {
-          @apply flex-1 h-1 bg-gray-200 mx-4;
-        }
-        .line.active {
-          @apply bg-primary;
-        }
-      `}</style>
     </LayoutWrapper>
   )
 }
