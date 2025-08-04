@@ -83,6 +83,40 @@ export default function CheckoutPage({ params }: PageProps) {
     }))
   }
 
+  const saveBookingData = async () => {
+    try {
+      const response = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tourId: tour!.id,
+          tourName: tour!.name,
+          customerName: formData.name,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          tourDate: formData.date!.toISOString(),
+          passengers: parseInt(formData.passengers),
+          luggage: parseInt(formData.luggage),
+          hotel: formData.hotel,
+          flight: formData.flight,
+          totalPrice: tour!.price * parseInt(formData.passengers),
+          status: 'pending'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar dados da reserva')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Erro ao salvar dados:', error)
+      throw error
+    }
+  }
+
   const handleNextStep = async () => {
     if (currentStep === 1) {
       // Validar dados do formulário
@@ -91,7 +125,21 @@ export default function CheckoutPage({ params }: PageProps) {
         return
       }
 
+      // Validar data mínima de 5 dias
+      const today = new Date()
+      const selectedDate = new Date(formData.date)
+      const diffTime = selectedDate.getTime() - today.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays < 5) {
+        alert("A data do tour deve ser pelo menos 5 dias a partir de hoje")
+        return
+      }
+
       try {
+        // Salvar dados da reserva no banco
+        await saveBookingData()
+
         // Criar Payment Intent
         const response = await fetch('/api/stripe/create-payment-intent', {
           method: 'POST',
@@ -99,7 +147,7 @@ export default function CheckoutPage({ params }: PageProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            amount: tour!.price * 100, // Converter para centavos
+            amount: tour!.price * parseInt(formData.passengers) * 100, // Converter para centavos
             currency: 'gbp',
             metadata: {
               tourId: tour!.id,
@@ -116,12 +164,16 @@ export default function CheckoutPage({ params }: PageProps) {
           }),
         })
 
+        if (!response.ok) {
+          throw new Error('Erro ao criar payment intent')
+        }
+
         const { client_secret } = await response.json()
         setClientSecret(client_secret)
         setCurrentStep(2)
       } catch (error) {
-        console.error('Erro ao criar payment intent:', error)
-        alert('Erro ao processar pagamento. Tente novamente.')
+        console.error('Erro ao processar:', error)
+        alert('Erro ao processar reserva. Tente novamente.')
       }
     }
   }
@@ -261,7 +313,7 @@ export default function CheckoutPage({ params }: PageProps) {
                               onSelect={(date) => handleInputChange('date', date)}
                               locale={ptBR}
                               disabled={(date) =>
-                                date < minimumDate || date > new Date(2025, 11, 31)
+                                date < minimumDate || date > new Date(2026, 11, 31)
                               }
                               initialFocus
                               className="bg-white"
