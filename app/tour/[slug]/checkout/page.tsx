@@ -156,6 +156,7 @@ export default function CheckoutPage({ params }: PageProps) {
           body: JSON.stringify({
             amount: tour!.price * parseInt(formData.passengers) * 100, // Converter para centavos
             currency: 'gbp',
+            email: formData.email,
             metadata: {
               tourId: tour!.id,
               tourName: tour!.name,
@@ -419,13 +420,16 @@ export default function CheckoutPage({ params }: PageProps) {
                       <p className="text-gray-600">Complete seu pagamento de forma segura</p>
                     </div>
 
-                    <StripeProvider clientSecret={clientSecret}>
-                      <StripePaymentForm
-                        onSuccess={handlePaymentSuccess}
-                        onError={handlePaymentError}
-                        total={totalPrice}
-                      />
-                    </StripeProvider>
+                    {clientSecret && (
+                      <StripeProvider clientSecret={clientSecret}>
+                        <StripePaymentForm
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                          total={totalPrice}
+                          clientSecret={clientSecret}
+                        />
+                      </StripeProvider>
+                    )}
 
                     <div className="flex justify-between pt-6">
                       <Button variant="outline" onClick={handlePrevStep}>

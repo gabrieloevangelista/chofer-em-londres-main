@@ -33,8 +33,38 @@ export function StripeProvider({ children, clientSecret }: StripeProviderProps) 
         fontFamily: 'system-ui, -apple-system, sans-serif',
         spacingUnit: '4px',
         borderRadius: '8px',
+        focusBoxShadow: '0px 0px 0px 2px rgba(0, 112, 243, 0.4)',
+        tabIconSelectedColor: '#0070f3',
       },
+      rules: {
+        '.Tab': {
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+        },
+        '.Tab--selected': {
+          backgroundColor: '#f8fafc',
+          borderColor: '#0070f3',
+        },
+        '.Input': {
+          borderRadius: '6px',
+          border: '1px solid #e2e8f0',
+          fontSize: '14px',
+          padding: '12px',
+        },
+        '.Input--focus': {
+          borderColor: '#0070f3',
+          boxShadow: '0px 0px 0px 2px rgba(0, 112, 243, 0.2)',
+        },
+        '.Label': {
+          fontSize: '14px',
+          fontWeight: '500',
+          color: '#374151',
+          marginBottom: '6px',
+        }
+      }
     },
+    loader: 'auto',
   } : undefined
 
   return (

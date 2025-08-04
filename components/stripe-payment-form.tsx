@@ -1,33 +1,52 @@
 
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   PaymentElement,
   useStripe,
-  useElements,
-  AddressElement
+  useElements
 } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Loader2, CreditCard, Shield } from 'lucide-react'
 
 interface StripePaymentFormProps {
   onSuccess: () => void
   onError: (error: string) => void
   total: number
+  clientSecret: string
 }
 
-export function StripePaymentForm({ onSuccess, onError, total }: StripePaymentFormProps) {
+export function StripePaymentForm({ onSuccess, onError, total, clientSecret }: StripePaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    setEmailError('')
+  }
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    if (!stripe || !elements) {
+    if (!stripe || !elements || !clientSecret) {
+      return
+    }
+
+    // Validar email
+    if (!email || !validateEmail(email)) {
+      setEmailError('Por favor, insira um email válido')
       return
     }
 
@@ -38,6 +57,7 @@ export function StripePaymentForm({ onSuccess, onError, total }: StripePaymentFo
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/tour/success`,
+        receipt_email: email,
       },
       redirect: "if_required"
     })
@@ -57,25 +77,31 @@ export function StripePaymentForm({ onSuccess, onError, total }: StripePaymentFo
     setIsLoading(false)
   }
 
-  const paymentElementOptions = {
-    layout: "tabs" as const,
-    paymentMethodOrder: ['card', 'google_pay', 'apple_pay'],
-    fields: {
-      billingDetails: {
-        address: {
-          country: 'auto',
-        },
-      },
-    },
-    wallets: {
-      applePay: 'auto',
-      googlePay: 'auto',
-    },
-  }
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-6">
+        {/* Email Input */}
+        <div>
+          <Label htmlFor="email" className="text-sm font-medium text-gray-900 mb-3 block">
+            Email para confirmação
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={handleEmailChange}
+            placeholder="seu@email.com"
+            className="w-full"
+            required
+          />
+          {emailError && (
+            <div className="text-red-600 text-sm mt-1">
+              {emailError}
+            </div>
+          )}
+        </div>
+
+        {/* Payment Element */}
         <div>
           <Label className="text-sm font-medium text-gray-900 mb-3 block flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
@@ -83,27 +109,24 @@ export function StripePaymentForm({ onSuccess, onError, total }: StripePaymentFo
           </Label>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <PaymentElement 
-              options={paymentElementOptions}
-              className="bg-white"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium text-gray-900 mb-3 block">
-            Endereço de Cobrança
-          </Label>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <AddressElement 
               options={{
-                mode: 'billing',
-                fields: {
-                  phone: 'always',
+                layout: {
+                  type: 'tabs',
+                  defaultCollapsed: false,
+                  radios: false,
+                  spacedAccordionItems: true
                 },
-                validation: {
-                  phone: {
-                    required: 'always',
+                paymentMethodOrder: ['card', 'google_pay', 'apple_pay'],
+                fields: {
+                  billingDetails: {
+                    address: {
+                      country: 'auto',
+                    },
                   },
+                },
+                wallets: {
+                  applePay: 'auto',
+                  googlePay: 'auto',
                 },
               }}
             />
