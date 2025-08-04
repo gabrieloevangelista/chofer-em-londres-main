@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { use, useState, useEffect } from "react"
+import { useParams, notFound } from "next/navigation"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarIcon, CreditCard, MapPin, Clock, Users } from "lucide-react"
+import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react"
 import { getTourBySlug } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
 import {
@@ -25,12 +25,17 @@ import {
 import { cn } from "@/lib/utils"
 import { format, addDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { CheckoutSteps } from "@/components/checkout-steps"
+import { Calendar } from "@/components/ui/calendar"
 
-export default function Checkout() {
-  const params = useParams<{ slug: string }>()
-  const [step, setStep] = useState(1)
-  const [tour, setTour] = useState<TouristAttraction>()
+interface PageProps {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default function CheckoutPage({ params }: PageProps) {
+  const { slug } = use(params)
+  const [tour, setTour] = useState<TouristAttraction | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: "",
@@ -55,18 +60,21 @@ export default function Checkout() {
   useEffect(() => {
     async function loadTour() {
       try {
-        const tourData = await getTourBySlug(params.slug)
+        const tourData = await getTourBySlug(slug)
         if (tourData) {
           setTour(tourData)
+        } else {
+          notFound()
         }
       } catch (error) {
         console.error('Erro ao carregar tour:', error)
+        notFound()
       } finally {
         setIsLoading(false)
       }
     }
     loadTour()
-  }, [params.slug])
+  }, [slug])
 
   const handleInputChange = (field: string, value: string | Date | undefined) => {
     setFormData(prev => ({
@@ -76,11 +84,11 @@ export default function Checkout() {
   }
 
   const handleNextStep = () => {
-    setStep(prev => prev + 1)
+    setCurrentStep(prev => prev + 1)
   }
 
   const handlePrevStep = () => {
-    setStep(prev => prev - 1)
+    setCurrentStep(prev => prev - 1)
   }
 
   const handleSubmit = async () => {
@@ -138,17 +146,11 @@ export default function Checkout() {
 
           {/* Progress Steps */}
           <div className="flex items-center justify-center mb-8">
-            <div className={`step-item ${step >= 1 ? 'active' : ''}`}>
-              Informações
-            </div>
-            <div className="line"></div>
-            <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
-              Pagamento
-            </div>
+            <CheckoutSteps step={currentStep} />
           </div>
 
           <Card className="p-6">
-            {step === 1 && (
+            {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -273,7 +275,7 @@ export default function Checkout() {
               </div>
             )}
 
-            {step === 2 && (
+            {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-2">
