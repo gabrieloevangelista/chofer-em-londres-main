@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,9 +11,11 @@ import { Card } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check } from "lucide-react"
 import { getTourBySlug } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
+import { StripeProvider } from "@/components/stripe-provider"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
 import {
   Popover,
   PopoverContent,
@@ -31,6 +34,8 @@ export default function Checkout() {
   const [step, setStep] = useState(1)
   const [tour, setTour] = useState<TouristAttraction>()
   const [isLoading, setIsLoading] = useState(true)
+  const [clientSecret, setClientSecret] = useState('')
+  const [paymentProcessing, setPaymentProcessing] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -63,6 +68,38 @@ export default function Checkout() {
     loadTour()
   }, [params.slug])
 
+  useEffect(() => {
+    if (step === 2 && tour) {
+      createPaymentIntent()
+    }
+  }, [step, tour])
+
+  const createPaymentIntent = async () => {
+    try {
+      const response = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: tour!.price * 100, // Converter para centavos
+          currency: 'gbp',
+          metadata: {
+            tourId: tour!.id,
+            tourName: tour!.name,
+            customerName: formData.name,
+            customerEmail: formData.email,
+          },
+        }),
+      })
+      
+      const { clientSecret } = await response.json()
+      setClientSecret(clientSecret)
+    } catch (error) {
+      console.error('Erro ao criar intent de pagamento:', error)
+    }
+  }
+
   const handleInputChange = (field: string, value: string | Date | undefined) => {
     setFormData(prev => ({
       ...prev,
@@ -70,7 +107,15 @@ export default function Checkout() {
     }))
   }
 
+  const validateStep1 = () => {
+    return formData.name && formData.email && formData.phone && formData.date && formData.hotel
+  }
+
   const handleNextStep = () => {
+    if (step === 1 && !validateStep1()) {
+      alert('Por favor, preencha todos os campos obrigatórios.')
+      return
+    }
     setStep(prev => prev + 1)
   }
 
@@ -78,9 +123,13 @@ export default function Checkout() {
     setStep(prev => prev - 1)
   }
 
-  const handleSubmit = async () => {
-    // TODO: Implementar integração com Stripe
-    console.log('Form data:', formData)
+  const handlePaymentSuccess = () => {
+    window.location.href = `/tour/${params.slug}/success`
+  }
+
+  const handlePaymentError = (error: string) => {
+    console.error('Erro no pagamento:', error)
+    alert('Erro no pagamento: ' + error)
   }
 
   const generatePassengerOptions = () => {
@@ -122,7 +171,7 @@ export default function Checkout() {
 
   return (
     <LayoutWrapper>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-primary">{tour.name}</h1>
@@ -131,54 +180,72 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Progress Steps */}
+          {/* Progress Steps - Melhorado */}
           <div className="flex items-center justify-center mb-8">
-            <div className={`step-item ${step >= 1 ? 'active' : ''}`}>
-              Informações
-            </div>
-            <div className="line"></div>
-            <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
-              Pagamento
+            <div className="flex items-center space-x-4">
+              <div className={`flex items-center space-x-2 ${step >= 1 ? 'text-primary' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                  step >= 1 ? 'bg-primary border-primary text-white' : 'border-gray-300'
+                }`}>
+                  {step > 1 ? <Check className="w-4 h-4" /> : '1'}
+                </div>
+                <span className="font-medium">Informações</span>
+              </div>
+              
+              <div className={`w-16 h-1 ${step >= 2 ? 'bg-primary' : 'bg-gray-200'}`}></div>
+              
+              <div className={`flex items-center space-x-2 ${step >= 2 ? 'text-primary' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                  step >= 2 ? 'bg-primary border-primary text-white' : 'border-gray-300'
+                }`}>
+                  {step > 2 ? <Check className="w-4 h-4" /> : '2'}
+                </div>
+                <span className="font-medium">Pagamento</span>
+              </div>
             </div>
           </div>
 
           <Card className="p-6">
             {step === 1 && (
               <div className="space-y-6">
+                <h2 className="text-xl font-semibold mb-4">Informações da Reserva</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome completo</Label>
+                    <Label htmlFor="name">Nome completo *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       placeholder="Seu nome completo"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
+                    <Label htmlFor="email">E-mail *</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="seu@email.com"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
+                    <Label htmlFor="phone">Telefone *</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       placeholder="+44 000 0000"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Data do tour</Label>
+                    <Label>Data do tour *</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -193,19 +260,24 @@ export default function Checkout() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 bg-white">
                         <Calendar
                           mode="single"
                           selected={formData.date}
                           onSelect={(date) => handleInputChange('date', date)}
                           locale={ptBR}
-                          disabled={(date) =>
-                            date < new Date() || date > new Date(2025, 11, 31)
-                          }
+                          disabled={(date) => {
+                            const today = new Date()
+                            const minDate = new Date(today)
+                            minDate.setDate(today.getDate() + 5)
+                            return date < minDate || date > new Date(2025, 11, 31)
+                          }}
                           initialFocus
+                          className="bg-white"
                         />
                       </PopoverContent>
                     </Popover>
+                    <p className="text-xs text-gray-500">Mínimo de 5 dias de antecedência</p>
                   </div>
 
                   <div className="space-y-2">
@@ -238,13 +310,14 @@ export default function Checkout() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="hotel">Hotel/Endereço</Label>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="hotel">Hotel/Endereço *</Label>
                     <Input
                       id="hotel"
                       value={formData.hotel}
                       onChange={(e) => handleInputChange('hotel', e.target.value)}
-                      placeholder="Nome do hotel ou endereço"
+                      placeholder="Nome do hotel ou endereço completo"
+                      required
                     />
                   </div>
 
@@ -260,7 +333,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button onClick={handleNextStep}>
+                  <Button onClick={handleNextStep} disabled={!validateStep1()}>
                     Próximo
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -270,67 +343,27 @@ export default function Checkout() {
 
             {step === 2 && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Número do cartão</Label>
-                    <Input
-                      id="cardNumber"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                      placeholder="1234 5678 9012 3456"
+                <h2 className="text-xl font-semibold mb-4">Pagamento Seguro</h2>
+                
+                {clientSecret ? (
+                  <StripeProvider clientSecret={clientSecret}>
+                    <StripePaymentForm
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                      total={tour.price}
                     />
+                  </StripeProvider>
+                ) : (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Carregando formulário de pagamento...</span>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardExpiry">Data de expiração</Label>
-                      <Input
-                        id="cardExpiry"
-                        value={formData.cardExpiry}
-                        onChange={(e) => handleInputChange('cardExpiry', e.target.value)}
-                        placeholder="MM/AA"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cardCvc">CVC</Label>
-                      <Input
-                        id="cardCvc"
-                        value={formData.cardCvc}
-                        onChange={(e) => handleInputChange('cardCvc', e.target.value)}
-                        placeholder="123"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Nome no cartão</Label>
-                    <Input
-                      id="cardName"
-                      value={formData.cardName}
-                      onChange={(e) => handleInputChange('cardName', e.target.value)}
-                      placeholder="Nome como está no cartão"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="postalCode">CEP/Código postal</Label>
-                    <Input
-                      id="postalCode"
-                      value={formData.postalCode}
-                      onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      placeholder="12345-678"
-                    />
-                  </div>
-                </div>
+                )}
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={handlePrevStep}>
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     Voltar
-                  </Button>
-                  <Button onClick={handleSubmit}>
-                    Finalizar pagamento
                   </Button>
                 </div>
               </div>
@@ -338,21 +371,6 @@ export default function Checkout() {
           </Card>
         </div>
       </div>
-
-      <style jsx>{`
-        .step-item {
-          @apply flex items-center justify-center w-36 h-10 bg-gray-100 rounded-full font-medium;
-        }
-        .step-item.active {
-          @apply bg-primary text-white;
-        }
-        .line {
-          @apply flex-1 h-1 bg-gray-200 mx-4;
-        }
-        .line.active {
-          @apply bg-primary;
-        }
-      `}</style>
     </LayoutWrapper>
   )
 }
