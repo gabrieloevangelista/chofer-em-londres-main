@@ -1,14 +1,13 @@
-
 "use client"
 
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface CheckoutStepsProps {
-  currentStep: number
+  step: number
 }
 
-export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
+export function CheckoutSteps({ step }: CheckoutStepsProps) {
   const steps = [
     { id: 1, name: "Informações", description: "Dados pessoais" },
     { id: 2, name: "Data", description: "Escolha a data" },
@@ -29,14 +28,14 @@ export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
                   <div
                     className={cn(
                       "h-10 w-10 rounded-full flex items-center justify-center",
-                      step.id < currentStep
+                      step.id < step
                         ? 'bg-primary text-white'
-                        : step.id === currentStep
+                        : step.id === step
                         ? 'bg-primary text-white'
                         : 'bg-gray-200 text-gray-500'
                     )}
                   >
-                    {step.id < currentStep ? (
+                    {step.id < step ? (
                       <Check className="h-5 w-5" />
                     ) : (
                       <span className="text-sm font-medium">{step.id}</span>
@@ -47,7 +46,7 @@ export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
                   <span
                     className={cn(
                       "text-sm font-medium",
-                      step.id <= currentStep ? 'text-primary' : 'text-gray-500'
+                      step.id <= step ? 'text-primary' : 'text-gray-500'
                     )}
                   >
                     {step.name}
@@ -59,7 +58,7 @@ export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
                 <div
                   className={cn(
                     "absolute top-5 left-10 h-0.5 w-full",
-                    step.id < currentStep ? 'bg-primary' : 'bg-gray-200'
+                    step.id < step ? 'bg-primary' : 'bg-gray-200'
                   )}
                 />
               )}
