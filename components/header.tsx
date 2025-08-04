@@ -14,23 +14,23 @@ function HeaderContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [currentPath, setCurrentPath] = useState('')
-  
+
   // Get the current path on the client side
   useEffect(() => {
     setIsMounted(true)
     setCurrentPath(window.location.pathname)
-    
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
-    
+
     const handlePopState = () => {
       setCurrentPath(window.location.pathname)
     }
-    
+
     window.addEventListener('scroll', handleScroll)
     window.addEventListener('popstate', handlePopState)
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('popstate', handlePopState)
@@ -68,8 +68,8 @@ function HeaderContent() {
           isScrolled ? "shadow-lg border-b border-gray-200" : "border-b border-gray-100",
         )}
       >
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
+        <div className="container-custom" suppressHydrationWarning>
+          <div className="flex items-center justify-between h-20" suppressHydrationWarning>
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
               <div className="relative w-[50px] h-[40px]">
@@ -163,6 +163,7 @@ function HeaderContent() {
           "fixed inset-0 z-[9997] bg-white transition-all duration-300 ease-in-out transform pt-20 px-4 overflow-y-auto",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
+        suppressHydrationWarning
       >
         <nav className="py-4">
           <ul className="space-y-2">
@@ -189,7 +190,7 @@ function HeaderContent() {
           </ul>
         </nav>
       </div>
-      
+
       {/* Overlay */}
       {mobileMenuOpen && (
         <div 

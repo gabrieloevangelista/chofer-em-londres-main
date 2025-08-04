@@ -21,8 +21,8 @@ export function Footer() {
   return (
     <footer className="bg-gray-900 text-white shadow-lg">
       {/* Main Footer Content */}
-      <div className="container-custom pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+      <div className="container-custom pb-8" suppressHydrationWarning>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12" suppressHydrationWarning>
           {/* About */}
           <div className="space-y-4">
             <div className="flex flex-col items-center md:items-start space-y-3 mb-6">

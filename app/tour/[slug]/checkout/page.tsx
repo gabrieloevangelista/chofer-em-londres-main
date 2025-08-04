@@ -83,15 +83,70 @@ export default function CheckoutPage({ params }: PageProps) {
     }))
   }
 
+  const saveBookingData = async () => {
+    try {
+      const response = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tourId: tour!.id,
+          tourName: tour!.name,
+          customerName: formData.name,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          tourDate: formData.date!.toISOString(),
+          passengers: parseInt(formData.passengers),
+          luggage: parseInt(formData.luggage),
+          hotel: formData.hotel,
+          flight: formData.flight,
+          totalPrice: tour!.price * parseInt(formData.passengers),
+          status: 'pending'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar dados da reserva')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Erro ao salvar dados:', error)
+      throw error
+    }
+  }
+
   const handleNextStep = async () => {
     if (currentStep === 1) {
-      // Validar dados do formulário
-      if (!formData.name || !formData.email || !formData.phone || !formData.date || !formData.hotel) {
-        alert("Por favor, preencha todos os campos obrigatórios")
+      // Validar dados do cliente
+      if (!formData.name || !formData.email || !formData.phone) {
+        alert("Por favor, preencha todos os campos obrigatórios do cliente")
+        return
+      }
+      setCurrentStep(2)
+    } else if (currentStep === 2) {
+      // Validar dados da viagem
+      if (!formData.date || !formData.hotel) {
+        alert("Por favor, preencha todos os campos obrigatórios da viagem")
+        return
+      }
+
+      // Validar data mínima de 5 dias
+      const today = new Date()
+      const selectedDate = new Date(formData.date)
+      const diffTime = selectedDate.getTime() - today.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays < 5) {
+        alert("A data do tour deve ser pelo menos 5 dias a partir de hoje")
         return
       }
 
       try {
+        // Salvar dados da reserva no banco
+        await saveBookingData()
+
         // Criar Payment Intent
         const response = await fetch('/api/stripe/create-payment-intent', {
           method: 'POST',
@@ -99,7 +154,7 @@ export default function CheckoutPage({ params }: PageProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            amount: tour!.price * 100, // Converter para centavos
+            amount: tour!.price * parseInt(formData.passengers) * 100, // Converter para centavos
             currency: 'gbp',
             metadata: {
               tourId: tour!.id,
@@ -116,12 +171,16 @@ export default function CheckoutPage({ params }: PageProps) {
           }),
         })
 
+        if (!response.ok) {
+          throw new Error('Erro ao criar payment intent')
+        }
+
         const { client_secret } = await response.json()
         setClientSecret(client_secret)
-        setCurrentStep(2)
+        setCurrentStep(3)
       } catch (error) {
-        console.error('Erro ao criar payment intent:', error)
-        alert('Erro ao processar pagamento. Tente novamente.')
+        console.error('Erro ao processar:', error)
+        alert('Erro ao processar reserva. Tente novamente.')
       }
     }
   }
@@ -196,8 +255,8 @@ export default function CheckoutPage({ params }: PageProps) {
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">Informações da reserva</h2>
-                      <p className="text-gray-600">Preencha seus dados para continuar</p>
+                      <h2 className="text-xl font-semibold mb-2">Dados do Cliente</h2>
+                      <p className="text-gray-600">Preencha suas informações pessoais</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,7 +283,7 @@ export default function CheckoutPage({ params }: PageProps) {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="phone">Telefone *</Label>
                         <Input
                           id="phone"
@@ -234,7 +293,25 @@ export default function CheckoutPage({ params }: PageProps) {
                           required
                         />
                       </div>
+                    </div>
 
+                    <div className="flex justify-end pt-6">
+                      <Button onClick={handleNextStep} size="lg">
+                        Continuar para dados da viagem
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Dados da Viagem</h2>
+                      <p className="text-gray-600">Escolha data, passageiros e bagagem</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label>Data do tour *</Label>
                         <Popover>
@@ -261,7 +338,7 @@ export default function CheckoutPage({ params }: PageProps) {
                               onSelect={(date) => handleInputChange('date', date)}
                               locale={ptBR}
                               disabled={(date) =>
-                                date < minimumDate || date > new Date(2025, 11, 31)
+                                date < minimumDate || date > new Date(2026, 11, 31)
                               }
                               initialFocus
                               className="bg-white"
@@ -271,7 +348,18 @@ export default function CheckoutPage({ params }: PageProps) {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Número de passageiros</Label>
+                        <Label>Hotel/Endereço *</Label>
+                        <Input
+                          id="hotel"
+                          value={formData.hotel}
+                          onChange={(e) => handleInputChange('hotel', e.target.value)}
+                          placeholder="Nome do hotel ou endereço"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Número de passageiros (máx. 8)</Label>
                         <Select
                           value={formData.passengers}
                           onValueChange={(value) => handleInputChange('passengers', value)}
@@ -300,18 +388,7 @@ export default function CheckoutPage({ params }: PageProps) {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="hotel">Hotel/Endereço *</Label>
-                        <Input
-                          id="hotel"
-                          value={formData.hotel}
-                          onChange={(e) => handleInputChange('hotel', e.target.value)}
-                          placeholder="Nome do hotel ou endereço"
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
+                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="flight">Número do voo (opcional)</Label>
                         <Input
                           id="flight"
@@ -322,7 +399,11 @@ export default function CheckoutPage({ params }: PageProps) {
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-6">
+                    <div className="flex justify-between pt-6">
+                      <Button variant="outline" onClick={handlePrevStep}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Voltar
+                      </Button>
                       <Button onClick={handleNextStep} size="lg">
                         Continuar para pagamento
                         <ChevronRight className="ml-2 h-4 w-4" />
@@ -331,7 +412,7 @@ export default function CheckoutPage({ params }: PageProps) {
                   </div>
                 )}
 
-                {currentStep === 2 && (
+                {currentStep === 3 && (
                   <div className="space-y-6">
                     <div className="mb-6">
                       <h2 className="text-xl font-semibold mb-2">Pagamento</h2>
