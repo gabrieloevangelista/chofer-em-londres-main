@@ -1,3 +1,4 @@
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 
@@ -6,15 +7,21 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!supabaseUrl) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_URL não está definida nas variáveis de ambiente')
+  console.warn('NEXT_PUBLIC_SUPABASE_URL não está definida nas variáveis de ambiente')
 }
 
 if (!supabaseAnonKey) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY não está definida nas variáveis de ambiente')
+  console.warn('NEXT_PUBLIC_SUPABASE_ANON_KEY não está definida nas variáveis de ambiente')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Fallback client for when environment variables are not set
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export function createSupabaseClient() {
-  return createClientComponentClient()
+  if (typeof window !== 'undefined') {
+    return createClientComponentClient()
+  }
+  return supabase
 }
