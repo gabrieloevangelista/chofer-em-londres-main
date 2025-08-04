@@ -1,0 +1,220 @@
+Error: A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload assetPrefix="" globalError={[...]}>
+      <AppDevOverlay state={{nextId:1, ...}} globalError={[...]}>
+        <AppDevOverlayErrorBoundary globalError={[...]} onError={function bound dispatchSetState}>
+          <ReplaySsrOnlyErrors>
+          <DevRootHTTPAccessFallbackBoundary>
+            <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+              <HTTPAccessFallbackErrorBoundary pathname="/tour/city..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+                <RedirectBoundary>
+                  <RedirectErrorBoundary router={{...}}>
+                    <Head>
+                    <link>
+                    <RootLayout>
+                      <html lang="pt-BR" className="__variable...">
+                        <body className="font-sans ..." suppressHydrationWarning={true}>
+                          <LayoutWrapper>
+                            <div
+                              className="flex flex-col min-h-screen bg-white bg-fixed overflow-x-hidden max-w-full"
+-                             bis_skin_checked="1"
+                            >
+                              <Header>
+                                <HeaderContent>
+                                  <header className="fixed top-...">
+                                    <div
+                                      className="container-custom"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="flex items-center justify-between h-20"
+-                                       bis_skin_checked="1"
+                                      >
+                                        <LinkComponent href="/" className="flex items...">
+                                          <a className="flex items..." ref={function} onClick={function onClick} ...>
+                                            <div
+                                              className="relative w-[50px] h-[40px]"
+-                                             bis_skin_checked="1"
+                                            >
+                                        <nav>
+                                        <div
+                                          className="hidden md:flex items-center space-x-2"
+-                                         bis_skin_checked="1"
+                                        >
+                                        <div
+                                          className="flex items-center space-x-2 md:hidden"
+-                                         bis_skin_checked="1"
+                                        >
+                                  <div
+                                    className="fixed inset-0 z-[9997] bg-white transition-all duration-300 ease-in-out..."
+-                                   bis_skin_checked="1"
+                                  >
+                                  ...
+                              <main>
+                              <div
+                                className="bg-gray-900 pt-10 mb-0 flex items-center"
+-                               bis_skin_checked="1"
+                              >
+                                <div
+                                  className="container-custom flex items-center"
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+                                    className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center pt-4 pb-10 w-full"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <div
+                                      className="flex items-center justify-center"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="w-12 h-12 rounded-full bg-blue-400/40 flex items-center justify-cen..."
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+                                        className="flex flex-col justify-center"
+-                                       bis_skin_checked="1"
+                                      >
+                                    <div
+                                      className="flex items-center justify-center"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="w-12 h-12 rounded-full bg-blue-400/40 flex items-center justify-cen..."
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+                                        className="flex flex-col justify-center"
+-                                       bis_skin_checked="1"
+                                      >
+                                    <div
+                                      className="flex items-center justify-center"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="w-12 h-12 rounded-full bg-blue-400/40 flex items-center justify-cen..."
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+                                        className="flex flex-col justify-center"
+-                                       bis_skin_checked="1"
+                                      >
+                                    <div
+                                      className="flex items-center justify-center"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="w-12 h-12 rounded-full bg-blue-400/40 flex items-center justify-cen..."
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+                                        className="flex flex-col justify-center"
+-                                       bis_skin_checked="1"
+                                      >
+                              <Footer>
+                                <footer className="bg-gray-90...">
+                                  <div
+                                    className="container-custom pb-8"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <div
+                                      className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12"
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="space-y-4"
+-                                       bis_skin_checked="1"
+                                      >
+                                        <div
+                                          className="flex flex-col items-center md:items-start space-y-3 mb-6"
+-                                         bis_skin_checked="1"
+                                        >
+                                          <div
+                                            className="relative w-[120px] h-[100px]"
+-                                           bis_skin_checked="1"
+                                          >
+                                          ...
+                                        <p>
+                                        <div
+                                          className="flex space-x-3 pt-2"
+-                                         bis_skin_checked="1"
+                                        >
+                                      <div
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+-                                       bis_skin_checked="1"
+                                      >
+                                      <div
+-                                       bis_skin_checked="1"
+                                      >
+                                        <h4>
+                                        <ul className="space-y-4">
+                                          <li className="flex items...">
+                                            <div
+                                              className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-..."
+-                                             bis_skin_checked="1"
+                                            >
+                                            <div
+-                                             bis_skin_checked="1"
+                                            >
+                                          <li className="flex items...">
+                                            <div
+                                              className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-..."
+-                                             bis_skin_checked="1"
+                                            >
+                                            <div
+-                                             bis_skin_checked="1"
+                                            >
+                                          <li className="flex items...">
+                                            <div
+                                              className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-..."
+-                                             bis_skin_checked="1"
+                                            >
+                                            <div
+-                                             bis_skin_checked="1"
+                                            >
+                                    <div
+                                      className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-..."
+-                                     bis_skin_checked="1"
+                                    >
+                                      <p>
+                                      <div
+                                        className="flex space-x-6"
+-                                       bis_skin_checked="1"
+                                      >
+                              ...
+                    ...
+        ...
+
+    at createUnhandledError (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/client/components/errors/console-error.js:27:71)
+    at handleClientError (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/client/components/errors/use-error-handler.js:45:56)
+    at console.error (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/client/components/globals/intercept-console-error.js:47:56)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13502:19)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:1511:30)
+    at emitPendingHydrationWarnings (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13501:9)
+    at completeWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13662:18)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:1514:13)
+    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15256:19)
+    at performUnitOfWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15137:11)
+    at workLoopConcurrentByScheduler (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15114:9)
+    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15089:15)
+    at performWorkOnRoot (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14410:13)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16275:7)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)
+    at div (<anonymous>)
+    at HeaderContent (webpack-internal:///(app-pages-browser)/./components/header.tsx:118:118)
+    at Header (webpack-internal:///(app-pages-browser)/./components/header.tsx:375:87)
+    at LayoutWrapper (webpack-internal:///(app-pages-browser)/./components/layout-wrapper.tsx:25:88)
+    at RootLayout (rsc://React/Server/webpack-internal:///(rsc)/./app/layout.tsx?0:37:98)
