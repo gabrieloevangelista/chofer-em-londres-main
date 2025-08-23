@@ -14,39 +14,27 @@ function HeaderContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [currentPath, setCurrentPath] = useState('')
+  const pathname = usePathname()
 
-  // Get the current path on the client side
   useEffect(() => {
     setIsMounted(true)
-    setCurrentPath(window.location.pathname)
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('popstate', handlePopState)
+    if (typeof window !== 'undefined') {
+      setCurrentPath(pathname)
     }
   }, [])
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      const scrolled = window.scrollY > 10
+      setIsScrolled(scrolled)
     }
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
-  // Navigation items
   const navItems = [
     { name: "Início", href: "/", icon: Home },
     { name: "Tours", href: "/tours", icon: MapIcon },
@@ -55,7 +43,10 @@ function HeaderContent() {
     { name: "Contato", href: "/contato", icon: Phone },
   ]
 
-  // Close mobile menu when a link is clicked
+  if (!isMounted) {
+    return null
+  }
+
   const handleNavigation = () => {
     setMobileMenuOpen(false)
   }
@@ -72,20 +63,8 @@ function HeaderContent() {
           <div className="flex items-center justify-between h-20" suppressHydrationWarning>
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
-<<<<<<< HEAD
               <div className="relative w-[70px] h-[70px] transition-all duration-300 group-hover:scale-105">
                 <Logo />
-=======
-              <div className="relative w-[50px] h-[40px]">
-                <Image
-                  src="https://static.wixstatic.com/media/e086ef_e7f781063b5a413ea3b962b2fda1a323~mv2.png/v1/fill/w_131,h_106,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/02.png"
-                  alt="Chofer em Londres Logo"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  className="transition-all duration-300 group-hover:scale-105"
-                  priority
-                />
->>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
               </div>
             </Link>
 
@@ -93,22 +72,20 @@ function HeaderContent() {
             <nav className="hidden md:block">
               <ul className="flex space-x-2">
                 {navItems.map((item) => {
+                  const Icon = item.icon
                   const isActive = currentPath === item.href
                   return (
                     <li key={item.name}>
                       <Link
                         href={item.href}
                         className={cn(
-                          "text-sm font-medium transition-all relative py-2 px-3 rounded-md flex items-center cursor-pointer",
+                          "flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-gray-100 cursor-pointer",
                           isActive
-                            ? "bg-blue-50 text-primary border border-blue-100 shadow-sm"
-                            : "text-gray-900 hover:bg-gray-100 hover:text-primary hover:scale-105"
+                            ? "text-blue-600 bg-blue-50"
+                            : "text-gray-700 hover:text-gray-900"
                         )}
-                        prefetch={false}
                       >
-                        <item.icon
-                          className={cn("w-4 h-4 mr-1.5", isActive ? "text-primary" : "text-gray-900")}
-                        />
+                        <Icon className="w-4 h-4 mr-2" />
                         {item.name}
                       </Link>
                     </li>
@@ -117,7 +94,7 @@ function HeaderContent() {
               </ul>
             </nav>
 
-            {/* Actions (Desktop) */}
+            {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-2">
               <button
                 onClick={() => setIsSearchOpen(true)}
@@ -162,6 +139,7 @@ function HeaderContent() {
           </div>
         </div>
       </header>
+
       {/* Mobile Menu */}
       <div
         className={cn(
@@ -173,6 +151,7 @@ function HeaderContent() {
         <nav className="py-4">
           <ul className="space-y-2">
             {navItems.map((item) => {
+              const Icon = item.icon
               const isActive = currentPath === item.href
               return (
                 <li key={item.name}>
@@ -180,13 +159,13 @@ function HeaderContent() {
                     href={item.href}
                     onClick={handleNavigation}
                     className={cn(
-                      "block text-base font-medium transition-all flex items-center px-4 py-3 rounded-lg",
+                      "flex items-center px-4 py-3 rounded-md text-base font-medium transition-all duration-200 cursor-pointer",
                       isActive
-                        ? "bg-blue-50 text-primary"
-                        : "text-gray-900 hover:bg-gray-100 hover:text-primary"
+                        ? "text-blue-600 bg-blue-50"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                     )}
                   >
-                    <item.icon className={cn("w-5 h-5 mr-3", isActive ? "text-primary" : "text-gray-900")} />
+                    <Icon className="w-5 h-5 mr-3" />
                     {item.name}
                   </Link>
                 </li>
@@ -196,7 +175,7 @@ function HeaderContent() {
         </nav>
       </div>
 
-      {/* Overlay */}
+      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 z-[9996] bg-black/50 backdrop-blur-sm"

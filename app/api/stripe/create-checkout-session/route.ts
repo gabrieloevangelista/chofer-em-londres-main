@@ -1,42 +1,40 @@
-import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe-config"
-import { format } from "date-fns"
+import { NextRequest, NextResponse } from 'next/server'
+import { stripe } from '@/lib/stripe-config'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { tourId, tourName, price, customerData } = await request.json()
 
-    // Criar uma sessão de checkout
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
-            currency: "gbp",
+            currency: 'gbp',
             product_data: {
               name: tourName,
-              description: `Data: ${format(new Date(customerData.date), 'dd/MM/yyyy')}\nPassageiros: ${customerData.passengers}, Malas: ${customerData.luggage}`,
+              description: `Tour em Londres - ${customerData.passengers} passageiro(s)`,
             },
-            unit_amount: price * 100, // Stripe espera o valor em centavos
+            unit_amount: Math.round(price * 100), // Convert to pence
           },
           quantity: 1,
         },
       ],
       customer_email: customerData.email,
       metadata: {
-        tourId,
+        tourId: tourId.toString(),
         tourName,
         tourDate: customerData.date,
         passengers: customerData.passengers,
-        luggage: customerData.luggage,
         hotel: customerData.hotel,
-        flight: customerData.flight,
+        flight: customerData.flight || '',
         customerName: customerData.name,
+        customerEmail: customerData.email,
         customerPhone: customerData.phone,
       },
-      mode: "payment",
-      success_url: `${request.headers.get("origin")}/tour/${tourId}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.headers.get("origin")}/tour/${tourId}`,
+      mode: 'payment',
+      success_url: `${request.nextUrl.origin}/tour/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.nextUrl.origin}/tour/checkout?cancelled=true`,
     })
 
     return NextResponse.json({ sessionUrl: session.url })
