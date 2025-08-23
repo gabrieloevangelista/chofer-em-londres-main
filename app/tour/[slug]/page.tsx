@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { notFound } from "next/navigation"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,12 +25,13 @@ import { ImageSlider } from "@/components/image-slider"
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default function TourDetails({ params }: PageProps) {
+  const { slug } = use(params)
   const [tour, setTour] = useState<TouristAttraction | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [rating, setRating] = useState(0)
@@ -42,7 +43,7 @@ export default function TourDetails({ params }: PageProps) {
   useEffect(() => {
     async function loadTour() {
       try {
-        const tourData = await getTourBySlug(params.slug)
+        const tourData = await getTourBySlug(slug)
         if (tourData) {
           setTour({
             ...tourData,
@@ -60,7 +61,7 @@ export default function TourDetails({ params }: PageProps) {
       }
     }
     loadTour()
-  }, [params.slug])
+  }, [slug])
 
   if (isLoading) {
     return <Skeleton className="h-[400px]" />

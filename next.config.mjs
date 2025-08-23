@@ -49,6 +49,9 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  // Configurações adicionais para hidratação
+  poweredByHeader: false,
+  compress: true,
 }
 
 export default nextConfig

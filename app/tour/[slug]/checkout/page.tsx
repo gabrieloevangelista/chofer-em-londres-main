@@ -1,16 +1,26 @@
 "use client"
 
+<<<<<<< HEAD
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+=======
+import { use, useState, useEffect } from "react"
+import { notFound } from "next/navigation"
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+<<<<<<< HEAD
 import { Card } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, Check } from "lucide-react"
+=======
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight, PoundSterling } from "lucide-react"
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
 import { getTourBySlug } from "@/services/tour-service"
 import { createAppointment } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
@@ -28,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+<<<<<<< HEAD
 import {
   Stepper,
   StepperItem,
@@ -45,6 +56,29 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+=======
+import { cn } from "@/lib/utils"
+import { format, addDays } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { Calendar } from "@/components/ui/calendar"
+import { CheckoutSteps } from "@/components/checkout-steps"
+import { StripeProvider } from "@/components/stripe-provider"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
+
+interface PageProps {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default function CheckoutPage({ params }: PageProps) {
+  const { slug } = use(params)
+  const [tour, setTour] = useState<TouristAttraction | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [clientSecret, setClientSecret] = useState("")
+
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -54,24 +88,32 @@ export default function Checkout() {
     luggage: "0",
     hotel: "",
     flight: "",
+<<<<<<< HEAD
     postalCode: "",
+=======
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
   })
+
+  const minimumDate = addDays(new Date(), 5)
 
   useEffect(() => {
     async function loadTour() {
       try {
-        const tourData = await getTourBySlug(params.slug)
+        const tourData = await getTourBySlug(slug)
         if (tourData) {
           setTour(tourData)
+        } else {
+          notFound()
         }
       } catch (error) {
         console.error('Erro ao carregar tour:', error)
+        notFound()
       } finally {
         setIsLoading(false)
       }
     }
     loadTour()
-  }, [params.slug])
+  }, [slug])
 
   const handleInputChange = (field: string, value: string | Date | undefined) => {
     // Limpar erro quando o usuário começa a digitar
@@ -89,6 +131,7 @@ export default function Checkout() {
     }))
   }
 
+<<<<<<< HEAD
   const validateStep = (currentStep: number) => {
     const newErrors: Record<string, string> = {}
     
@@ -106,13 +149,122 @@ export default function Checkout() {
   const handleNextStep = () => {
     if (validateStep(step)) {
       setStep(prev => prev + 1)
+=======
+  const saveBookingData = async () => {
+    try {
+      const response = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tourId: tour!.id,
+          tourName: tour!.name,
+          customerName: formData.name,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          tourDate: formData.date!.toISOString(),
+          passengers: parseInt(formData.passengers),
+          luggage: parseInt(formData.luggage),
+          hotel: formData.hotel,
+          flight: formData.flight,
+          totalPrice: tour!.price, // Preço fixo para até 8 passageiros
+          status: 'pending'
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Erro ao salvar reserva:', errorText)
+        alert('Erro ao processar reserva. Tente novamente.')
+        return
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Erro ao salvar dados:', error)
+      throw error
+    }
+  }
+
+  const handleNextStep = async () => {
+    if (currentStep === 1) {
+      // Validar dados do cliente
+      if (!formData.name || !formData.email || !formData.phone) {
+        alert("Por favor, preencha todos os campos obrigatórios do cliente")
+        return
+      }
+      setCurrentStep(2)
+    } else if (currentStep === 2) {
+      // Validar dados da viagem
+      if (!formData.date || !formData.hotel) {
+        alert("Por favor, preencha todos os campos obrigatórios da viagem")
+        return
+      }
+
+      // Validar data mínima de 5 dias
+      const today = new Date()
+      const selectedDate = new Date(formData.date)
+      const diffTime = selectedDate.getTime() - today.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      if (diffDays < 5) {
+        alert("A data do tour deve ser pelo menos 5 dias a partir de hoje")
+        return
+      }
+
+      try {
+        // Salvar dados da reserva no banco
+        await saveBookingData()
+
+        // Criar Payment Intent
+        const paymentResponse = await fetch('/api/stripe/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: tour!.price * 100, // Preço fixo em centavos
+            currency: 'gbp',
+            email: formData.email,
+            metadata: {
+              tourId: tour!.id,
+              tourName: tour!.name,
+              tourDate: formData.date!.toISOString(),
+              passengers: formData.passengers,
+              luggage: formData.luggage,
+              hotel: formData.hotel,
+              flight: formData.flight,
+              customerName: formData.name,
+              customerEmail: formData.email,
+              customerPhone: formData.phone,
+            }
+          }),
+        })
+
+        if (!paymentResponse.ok) {
+          const errorText = await paymentResponse.text()
+          console.error('Erro ao criar payment intent:', errorText)
+          alert('Erro ao inicializar pagamento. Tente novamente.')
+          return
+        }
+
+        const { client_secret } = await paymentResponse.json()
+        setClientSecret(client_secret)
+        setCurrentStep(3)
+      } catch (error) {
+        console.error('Erro ao processar:', error)
+        alert('Erro ao processar reserva. Tente novamente.')
+      }
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
     }
   }
 
   const handlePrevStep = () => {
-    setStep(prev => prev - 1)
+    setCurrentStep(prev => prev - 1)
   }
 
+<<<<<<< HEAD
   const handleSubmit = async () => {
     if (!validateStep(step)) return
     
@@ -189,6 +341,15 @@ export default function Checkout() {
     } finally {
       setIsProcessing(false)
     }
+=======
+  const handlePaymentSuccess = () => {
+    window.location.href = `/tour/${slug}/success?session_id=success`
+  }
+
+  const handlePaymentError = (error: string) => {
+    console.error('Erro no pagamento:', error)
+    alert('Erro no pagamento: ' + error)
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
   }
 
   const generatePassengerOptions = () => {
@@ -241,8 +402,11 @@ export default function Checkout() {
     )
   }
 
+  const totalPrice = tour.price // Preço fixo independente do número de passageiros (até 8)
+
   return (
     <LayoutWrapper>
+<<<<<<< HEAD
       <div className="container-custom mx-auto py-12">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-8 text-center">Reserva de Tour</h1>
@@ -373,22 +537,53 @@ export default function Checkout() {
                     </Popover>
                     {errors.date && <p className="text-red-500 text-sm">{errors.date}</p>}
                   </div>
+=======
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-primary mb-2">{tour.name}</h1>
+            <CheckoutSteps step={currentStep} />
+          </div>
 
-                  <div className="space-y-2">
-                    <Label>Número de passageiros</Label>
-                    <Select
-                      value={formData.passengers}
-                      onValueChange={(value) => handleInputChange('passengers', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {generatePassengerOptions()}
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {/* Layout de 2 colunas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Coluna principal - Formulário */}
+            <div className="lg:col-span-2">
+              <Card className="p-6">
+                {currentStep === 1 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Dados do Cliente</h2>
+                      <p className="text-gray-600">Preencha suas informações pessoais</p>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nome completo *</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Seu nome completo"
+                          required
+                        />
+                      </div>
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          placeholder="seu@email.com"
+                          required
+                        />
+                      </div>
+
+<<<<<<< HEAD
                   <div className="space-y-2">
                     <Label>Número de malas</Label>
                     <Select
@@ -539,6 +734,240 @@ export default function Checkout() {
               </div>
             )}
           </Card>
+=======
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="phone">Telefone *</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="+44 000 0000"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-6">
+                      <Button onClick={handleNextStep} size="lg">
+                        Continuar para dados da viagem
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Dados da Viagem</h2>
+                      <p className="text-gray-600">Escolha data, passageiros e bagagem</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Data do tour *</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-white",
+                                !formData.date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.date ? (
+                                format(formData.date, "PPP", { locale: ptBR })
+                              ) : (
+                                <span>Selecione uma data</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-white">
+                            <Calendar
+                              mode="single"
+                              selected={formData.date}
+                              onSelect={(date) => handleInputChange('date', date)}
+                              locale={ptBR}
+                              disabled={(date) =>
+                                date < minimumDate || date > new Date(2026, 11, 31)
+                              }
+                              initialFocus
+                              className="bg-white"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Hotel/Endereço *</Label>
+                        <Input
+                          id="hotel"
+                          value={formData.hotel}
+                          onChange={(e) => handleInputChange('hotel', e.target.value)}
+                          placeholder="Nome do hotel ou endereço"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Número de passageiros (máx. 8)</Label>
+                        <Select
+                          value={formData.passengers}
+                          onValueChange={(value) => handleInputChange('passengers', value)}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {generatePassengerOptions()}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Número de malas</Label>
+                        <Select
+                          value={formData.luggage}
+                          onValueChange={(value) => handleInputChange('luggage', value)}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {generateLuggageOptions()}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="flight">Número do voo (opcional)</Label>
+                        <Input
+                          id="flight"
+                          value={formData.flight}
+                          onChange={(e) => handleInputChange('flight', e.target.value)}
+                          placeholder="Ex: BA1234"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between pt-6">
+                      <Button variant="outline" onClick={handlePrevStep}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Voltar
+                      </Button>
+                      <Button onClick={handleNextStep} size="lg">
+                        Continuar para pagamento
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2">Pagamento</h2>
+                      <p className="text-gray-600">Complete seu pagamento de forma segura</p>
+                    </div>
+
+                    {clientSecret ? (
+                      <StripeProvider clientSecret={clientSecret}>
+                        <StripePaymentForm
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                          total={totalPrice}
+                          clientSecret={clientSecret}
+                        />
+                      </StripeProvider>
+                    ) : (
+                      <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h3 className="text-yellow-800 font-semibold mb-2">Preparando pagamento...</h3>
+                        <p className="text-yellow-700 text-sm">
+                          Estamos configurando seu pagamento. Se este erro persistir, entre em contato conosco.
+                        </p>
+                        <Button 
+                          onClick={handlePrevStep} 
+                          variant="outline" 
+                          className="mt-4"
+                        >
+                          Voltar e tentar novamente
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between pt-6">
+                      <Button variant="outline" onClick={handlePrevStep}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Voltar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* Coluna lateral - Resumo da compra */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-4">
+                <CardHeader>
+                  <CardTitle className="text-lg">Resumo da reserva</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-primary">{tour.name}</h3>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span>{tour.duration}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span>{tour.category}</span>
+                    </div>
+
+                    {formData.date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>{format(formData.date, "PPP", { locale: ptBR })}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users className="w-4 h-4" />
+                      <span>{formData.passengers} {parseInt(formData.passengers) === 1 ? 'passageiro' : 'passageiros'}</span>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Preço fixo (até 8 passageiros):</span>
+                      <span>£{tour.price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Passageiros:</span>
+                      <span>{formData.passengers}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                      <span>Total:</span>
+                      <span className="flex items-center gap-1">
+                        <PoundSterling className="w-4 h-4" />
+                        {totalPrice}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 p-3 rounded-lg text-sm text-green-700">
+                    ✓ Confirmação imediata por email
+                    <br />
+                    ✓ Cancelamento grátis até 24h antes
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
         </div>
       </div>
     </LayoutWrapper>
