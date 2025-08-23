@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Home, MapIcon, Plane, Info, Phone, Search, Menu, X, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SearchModal } from "./search-modal"
-import Image from "next/image"
+import { Logo } from "./logo"
 
 function HeaderContent() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -14,23 +14,23 @@ function HeaderContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [currentPath, setCurrentPath] = useState('')
-  
+
   // Get the current path on the client side
   useEffect(() => {
     setIsMounted(true)
     setCurrentPath(window.location.pathname)
-    
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
-    
+
     const handlePopState = () => {
       setCurrentPath(window.location.pathname)
     }
-    
+
     window.addEventListener('scroll', handleScroll)
     window.addEventListener('popstate', handlePopState)
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('popstate', handlePopState)
@@ -68,19 +68,24 @@ function HeaderContent() {
           isScrolled ? "shadow-lg border-b border-gray-200" : "border-b border-gray-100",
         )}
       >
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
+        <div className="container-custom" suppressHydrationWarning>
+          <div className="flex items-center justify-between h-20" suppressHydrationWarning>
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
+<<<<<<< HEAD
+              <div className="relative w-[70px] h-[70px] transition-all duration-300 group-hover:scale-105">
+                <Logo />
+=======
               <div className="relative w-[50px] h-[40px]">
                 <Image
-                  src="/placeholder-logo.png"
+                  src="https://static.wixstatic.com/media/e086ef_e7f781063b5a413ea3b962b2fda1a323~mv2.png/v1/fill/w_131,h_106,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/02.png"
                   alt="Chofer em Londres Logo"
                   fill
                   style={{ objectFit: "contain" }}
                   className="transition-all duration-300 group-hover:scale-105"
                   priority
                 />
+>>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
               </div>
             </Link>
 
@@ -163,6 +168,7 @@ function HeaderContent() {
           "fixed inset-0 z-[9997] bg-white transition-all duration-300 ease-in-out transform pt-20 px-4 overflow-y-auto",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
+        suppressHydrationWarning
       >
         <nav className="py-4">
           <ul className="space-y-2">
@@ -189,7 +195,7 @@ function HeaderContent() {
           </ul>
         </nav>
       </div>
-      
+
       {/* Overlay */}
       {mobileMenuOpen && (
         <div 

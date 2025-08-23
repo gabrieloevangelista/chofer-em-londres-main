@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 import Image from "next/image"
 import {
@@ -13,6 +14,8 @@ import {
   Heart,
   Info,
   MapIcon,
+  Shield,
+  Award,
 } from "lucide-react"
 
 export function Footer() {
@@ -20,15 +23,62 @@ export function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white shadow-lg">
+      {/* Features Section */}
+      <div className="bg-gray-900 pt-8 pb-4">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-400/40 flex items-center justify-center mb-2 md:mb-0 md:mr-4 shadow-md border border-blue-300">
+                <Shield className="w-5 h-5 md:w-6 md:h-6 text-blue-300" />
+              </div>
+              <div className="text-center md:text-left">
+                <p className="text-white font-medium text-sm md:text-base">Segurança</p>
+                <p className="text-gray-400 text-xs md:text-sm">Motoristas profissionais</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-400/40 flex items-center justify-center mb-2 md:mb-0 md:mr-4 shadow-md border border-blue-300">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-blue-300" />
+              </div>
+              <div className="text-center md:text-left">
+                <p className="text-white font-medium text-sm md:text-base">Pontualidade</p>
+                <p className="text-gray-400 text-xs md:text-sm">Sempre no horário</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-400/40 flex items-center justify-center mb-2 md:mb-0 md:mr-4 shadow-md border border-blue-300">
+                <Award className="w-5 h-5 md:w-6 md:h-6 text-blue-300" />
+              </div>
+              <div className="text-center md:text-left">
+                <p className="text-white font-medium text-sm md:text-base">Qualidade</p>
+                <p className="text-gray-400 text-xs md:text-sm">Serviço de excelência</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-400/40 flex items-center justify-center mb-2 md:mb-0 md:mr-4 shadow-md border border-blue-300">
+                <Heart className="w-5 h-5 md:w-6 md:h-6 text-blue-300" />
+              </div>
+              <div className="text-center md:text-left">
+                <p className="text-white font-medium text-sm md:text-base">Satisfação</p>
+                <p className="text-gray-400 text-xs md:text-sm">Clientes satisfeitos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer Content */}
-      <div className="container-custom pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+      <div className="container mx-auto px-4 max-w-7xl pb-8 pt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div className="space-y-4">
             <div className="flex flex-col items-center md:items-start space-y-3 mb-6">
-              <div className="relative w-[120px] h-[100px]">
+              <div className="relative w-[120px] h-[120px]">
                 <Image
-                  src="https://static.wixstatic.com/media/e086ef_e7f781063b5a413ea3b962b2fda1a323~mv2.png/v1/fill/w_131,h_106,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/02.png"
+                  src="/chofer-logo.png"
                   alt="Chofer em Londres Logo"
                   fill
                   style={{ objectFit: "contain" }}
@@ -36,11 +86,11 @@ export function Footer() {
               </div>
               <h3 className="text-xl font-bold text-white">Chofer em Londres</h3>
             </div>
-            <p className="text-gray-400 leading-relaxed">
+            <p className="text-gray-400 leading-relaxed text-sm md:text-base text-center md:text-left">
               Oferecemos serviços de transporte premium e tours personalizados em Londres, garantindo conforto,
               pontualidade e experiências inesquecíveis.
             </p>
-            <div className="flex space-x-3 pt-2">
+            <div className="flex space-x-3 pt-2 justify-center md:justify-start">
               <a
                 href="#"
                 className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors"
@@ -70,31 +120,31 @@ export function Footer() {
             <h4 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Links Rápidos</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Globe className="w-4 h-4 mr-2 text-primary" />
                   Início
                 </Link>
               </li>
               <li>
-                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <MapIcon className="w-4 h-4 mr-2 text-primary" />
                   Tours
                 </Link>
               </li>
               <li>
-                <Link href="/transfer" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/transfer" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Car className="w-4 h-4 mr-2 text-primary" />
                   Transfer
                 </Link>
               </li>
               <li>
-                <Link href="/sobre" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/sobre" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Info className="w-4 h-4 mr-2 text-primary" />
                   Sobre
                 </Link>
               </li>
               <li>
-                <Link href="/contato" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/contato" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Phone className="w-4 h-4 mr-2 text-primary" />
                   Contato
                 </Link>
@@ -107,31 +157,31 @@ export function Footer() {
             <h4 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Serviços</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <MapPin className="w-4 h-4 mr-2 text-primary" />
                   City Tour de Londres
                 </Link>
               </li>
               <li>
-                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Clock className="w-4 h-4 mr-2 text-primary" />
                   Tour Histórico
                 </Link>
               </li>
               <li>
-                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Globe className="w-4 h-4 mr-2 text-primary" />
                   Museus de Londres
                 </Link>
               </li>
               <li>
-                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/tours" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Heart className="w-4 h-4 mr-2 text-primary" />
                   Parques Reais
                 </Link>
               </li>
               <li>
-                <Link href="/transfer" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                <Link href="/transfer" className="text-gray-400 hover:text-white transition-colors flex items-center text-sm md:text-base">
                   <Car className="w-4 h-4 mr-2 text-primary" />
                   Transfer Aeroporto
                 </Link>
@@ -144,30 +194,30 @@ export function Footer() {
             <h4 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Contato</h4>
             <ul className="space-y-4">
               <li className="flex items-start">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary">
+                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary flex-shrink-0">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-white font-medium">Telefone</p>
-                  <p className="text-gray-400">+44 20 1234 5678</p>
+                  <p className="text-white font-medium text-sm md:text-base">Telefone</p>
+                  <p className="text-gray-400 text-xs md:text-sm">+44 20 1234 5678</p>
                 </div>
               </li>
               <li className="flex items-start">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary">
+                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary flex-shrink-0">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-white font-medium">Email</p>
-                  <p className="text-gray-400">info@choferemlondres.com</p>
+                  <p className="text-white font-medium text-sm md:text-base">Email</p>
+                  <p className="text-gray-400 text-xs md:text-sm break-all">info@choferemlondres.com</p>
                 </div>
               </li>
               <li className="flex items-start">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary">
+                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mr-3 text-primary flex-shrink-0">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-white font-medium">Endereço</p>
-                  <p className="text-gray-400">94 Burrows Rd, London NW10 5SH, Reino Unido</p>
+                  <p className="text-white font-medium text-sm md:text-base">Endereço</p>
+                  <p className="text-gray-400 text-xs md:text-sm">94 Burrows Rd, London NW10 5SH, Reino Unido</p>
                 </div>
               </li>
             </ul>
@@ -176,14 +226,14 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 mb-4 md:mb-0">
+          <p className="text-gray-400 mb-4 md:mb-0 text-sm text-center md:text-left">
             &copy; {currentYear} Chofer em Londres. Todos os direitos reservados.
           </p>
-          <div className="flex space-x-6">
-            <Link href="/legal/termos-de-uso" className="text-gray-400 hover:text-white transition-colors">
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+            <Link href="/legal/termos-de-uso" className="text-gray-400 hover:text-white transition-colors text-sm text-center">
               Termos de Uso
             </Link>
-            <Link href="/legal/politica-de-privacidade" className="text-gray-400 hover:text-white transition-colors">
+            <Link href="/legal/politica-de-privacidade" className="text-gray-400 hover:text-white transition-colors text-sm text-center">
               Política de Privacidade
             </Link>
           </div>

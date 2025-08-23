@@ -1,10 +1,18 @@
 import Stripe from "stripe"
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY não está definida")
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+
+if (!stripeSecretKey) {
+  console.error("STRIPE_SECRET_KEY não está definida nas variáveis de ambiente")
+  throw new Error("STRIPE_SECRET_KEY não está definida nas variáveis de ambiente")
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+if (stripeSecretKey.includes('your_stripe_secret_key') || stripeSecretKey.includes('aqui')) {
+  console.error("Configure uma chave válida do Stripe em STRIPE_SECRET_KEY")
+  throw new Error("Configure uma chave válida do Stripe em STRIPE_SECRET_KEY")
+}
+
+export const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2023-10-16",
   typescript: true,
 })

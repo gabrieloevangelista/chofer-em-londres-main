@@ -126,7 +126,7 @@ export default function Home() {
   }, [])
 
   return (
-    <LayoutWrapper>
+    <LayoutWrapper noPaddingTop>
       {/* Hero Section */}
       <section className="relative h-screen overflow-hidden">
         <Image

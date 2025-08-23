@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Chofer em Londres",
   description: "Tours personalizados e transfers de luxo em Londres",
   icons: {
-    icon: "/favicon.png",
+    icon: "/chofer-logo.png",
   },
   generator: 'v0.dev',
   metadataBase: new URL(siteConfig.url),
@@ -31,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable}`}>
-      <body className="font-sans antialiased">
+    <html lang="pt-BR" className={`${inter.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
