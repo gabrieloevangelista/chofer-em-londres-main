@@ -4,15 +4,17 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { ReactNode } from 'react'
 
-if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-  throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY não está definida nas variáveis de ambiente')
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+if (!stripePublishableKey) {
+  console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY não está definida nas variáveis de ambiente')
 }
 
-if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.includes('aqui')) {
-  throw new Error('Configure uma chave válida do Stripe em NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')
+if (stripePublishableKey && (stripePublishableKey.includes('your_stripe_publishable_key') || stripePublishableKey.includes('aqui'))) {
+  console.error('Configure uma chave válida do Stripe em NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')
 }
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
 
 interface StripeProviderProps {
   children: ReactNode
@@ -20,21 +22,23 @@ interface StripeProviderProps {
 }
 
 export function StripeProvider({ children, clientSecret }: StripeProviderProps) {
-  const options: StripeElementsOptions = {
+  if (!stripePromise) {
+    return (
+      <div className="p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+        <p>Sistema de pagamento não configurado. Verifique as variáveis de ambiente do Stripe.</p>
+        {children}
+      </div>
+    )
+  }
+
+  const options = {
     clientSecret,
     appearance: {
-      theme: 'stripe',
+      theme: 'stripe' as const,
       variables: {
         colorPrimary: '#0ea5e9',
       },
     },
-  }
-
-  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-
-  if (!stripePublishableKey || stripePublishableKey.includes('your_stripe_publishable_key')) {
-    console.error('Stripe publishable key não configurada ou é um placeholder')
-    return <div>Carregando sistema de pagamento...</div>
   }
 
   return (

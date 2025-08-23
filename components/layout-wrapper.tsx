@@ -6,6 +6,7 @@ import { Footer } from "./footer"
 import { MobileTabbar } from "./mobile-tabbar"
 import { FloatingContactButton } from "./floating-contact-button"
 import { ClientOnly } from "./client-only"
+import { Shield, Clock, Award, Heart } from "lucide-react"
 
 interface LayoutWrapperProps {
   children: React.ReactNode
@@ -16,7 +17,6 @@ export function LayoutWrapper({ children, noPaddingTop = false }: LayoutWrapperP
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-x-hidden" suppressHydrationWarning>
       <Header />
-<<<<<<< HEAD
       <main className={`flex-grow w-full ${noPaddingTop ? 'pt-0' : 'pt-20'} pb-24 md:pb-0 overflow-x-hidden`}>{children}</main>
 
       {/* Features Section - Moved from footer */}
@@ -66,9 +66,6 @@ export function LayoutWrapper({ children, noPaddingTop = false }: LayoutWrapperP
         </div>
       </div>
 
-=======
-      <main className="flex-grow w-full pb-20 md:pb-0">{children}</main>
->>>>>>> 836f31ad909de4cd60c3918b6ed9eefa617e8d5c
       <Footer />
       <ClientOnly>
         <MobileTabbar />
