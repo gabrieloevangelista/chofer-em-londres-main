@@ -26,9 +26,9 @@ export function Footer() {
           {/* About */}
           <div className="space-y-4">
             <div className="flex flex-col items-center md:items-start space-y-3 mb-6">
-              <div className="relative w-[120px] h-[100px]">
+              <div className="relative w-[120px] h-[120px]">
                 <Image
-                  src="https://static.wixstatic.com/media/e086ef_e7f781063b5a413ea3b962b2fda1a323~mv2.png/v1/fill/w_131,h_106,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/02.png"
+                  src="/chofer-logo.png"
                   alt="Chofer em Londres Logo"
                   fill
                   style={{ objectFit: "contain" }}

@@ -8,42 +8,47 @@ export default function Sobre() {
       <div className="container-custom mx-auto py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Sobre Chofer em Londres</h1>
 
-        {/* Hero Section with Main Image */}
-        <div className="relative h-[500px] rounded-xl overflow-hidden mb-16 shadow-lg">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bruno%20%281%29.jpg-0NUiBf9yqc9GdjkqGzIcJpd2Hg1h4p.jpeg"
-            alt="Bruno - Chofer em Londres"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 right-0 p-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Bruno Reis</h2>
-            <p className="text-white/90 text-lg">Fundador e seu motorista particular em Londres</p>
+        {/* Hero Section with Side-by-Side Layout for Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+          {/* Image Section */}
+          <div className="relative h-[500px] rounded-xl overflow-hidden shadow-lg">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bruno%20%281%29.jpg-0NUiBf9yqc9GdjkqGzIcJpd2Hg1h4p.jpeg"
+              alt="Bruno - Chofer em Londres"
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <h2 className="text-2xl font-bold text-white mb-2">Bruno Reis</h2>
+              <p className="text-white/90 text-lg">Fundador e seu motorista particular em Londres</p>
+            </div>
           </div>
-        </div>
 
-        {/* About Section - Simplified */}
-        <div className="bg-white p-8 rounded-xl shadow-md mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Nossa História</h2>
-          <p className="text-gray-600 mb-4 leading-relaxed">
-            Fundada por Bruno Reis há mais de 20 anos, a Chofer em Londres é uma empresa especializada em oferecer
-            serviços de transporte de alta qualidade para turistas e visitantes em Londres. Nossa missão é proporcionar
-            uma experiência única e confortável, permitindo que nossos clientes aproveitem ao máximo sua estadia na
-            cidade.
-          </p>
-          <p className="text-gray-600 mb-4 leading-relaxed">
-            Hoje, contamos com uma equipe de motoristas brasileiros experientes e conhecedores da cidade, garantindo não
-            apenas um transporte seguro e pontual, mas também um serviço personalizado que atende às necessidades
-            específicas de cada cliente. Nossos motoristas oferecem um atendimento em português, tornando a experiência
-            ainda mais confortável para visitantes brasileiros e portugueses.
-          </p>
-          <p className="text-gray-600 leading-relaxed">
-            Com mais de duas décadas de experiência, a Chofer em Londres se consolidou como referência em transfers e
-            tours personalizados. Seja para tours turísticos, transfers de aeroporto ou deslocamentos pela cidade,
-            estamos aqui para tornar sua viagem inesquecível com o melhor da hospitalidade brasileira em solo britânico.
-          </p>
+          {/* Text Section */}
+          <div className="flex flex-col justify-center">
+            <div className="bg-white p-8 rounded-xl shadow-md h-full">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Nossa História</h2>
+              <p className="text-gray-600 mb-4 leading-relaxed">
+                Fundada por Bruno Reis há mais de 20 anos, a Chofer em Londres é uma empresa especializada em oferecer
+                serviços de transporte de alta qualidade para turistas e visitantes em Londres. Nossa missão é proporcionar
+                uma experiência única e confortável, permitindo que nossos clientes aproveitem ao máximo sua estadia na
+                cidade.
+              </p>
+              <p className="text-gray-600 mb-4 leading-relaxed">
+                Hoje, contamos com uma equipe de motoristas brasileiros experientes e conhecedores da cidade, garantindo não
+                apenas um transporte seguro e pontual, mas também um serviço personalizado que atende às necessidades
+                específicas de cada cliente. Nossos motoristas oferecem um atendimento em português, tornando a experiência
+                ainda mais confortável para visitantes brasileiros e portugueses.
+              </p>
+              <p className="text-gray-600 leading-relaxed">
+                Com mais de duas décadas de experiência, a Chofer em Londres se consolidou como referência em transfers e
+                tours personalizados. Seja para tours turísticos, transfers de aeroporto ou deslocamentos pela cidade,
+                estamos aqui para tornar sua viagem inesquecível com o melhor da hospitalidade brasileira em solo britânico.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Features */}

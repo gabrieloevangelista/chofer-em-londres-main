@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Chofer em Londres",
   description: "Tours personalizados e transfers de luxo em Londres",
   icons: {
-    icon: "/favicon.png",
+    icon: "/chofer-logo.png",
   },
   generator: 'v0.dev',
   metadataBase: new URL(siteConfig.url),

@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Home, MapIcon, Plane, Info, Phone, Search, Menu, X, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SearchModal } from "./search-modal"
-import Image from "next/image"
+import { Logo } from "./logo"
 
 function HeaderContent() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -72,15 +72,8 @@ function HeaderContent() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
-              <div className="relative w-[50px] h-[40px]">
-                <Image
-                  src="/placeholder-logo.png"
-                  alt="Chofer em Londres Logo"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  className="transition-all duration-300 group-hover:scale-105"
-                  priority
-                />
+              <div className="relative w-[70px] h-[70px] transition-all duration-300 group-hover:scale-105">
+                <Logo />
               </div>
             </Link>
 

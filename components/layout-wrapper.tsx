@@ -9,13 +9,14 @@ import { Shield, Clock, Award, Heart } from "lucide-react"
 
 interface LayoutWrapperProps {
   children: React.ReactNode
+  noPaddingTop?: boolean
 }
 
-export function LayoutWrapper({ children }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, noPaddingTop = false }: LayoutWrapperProps) {
   return (
     <div className="flex flex-col min-h-screen bg-white bg-fixed overflow-x-hidden max-w-full">
       <Header />
-      <main className="flex-grow w-full pt-24 pb-24 md:pb-0 overflow-x-hidden">{children}</main>
+      <main className={`flex-grow w-full ${noPaddingTop ? 'pt-0' : 'pt-20'} pb-24 md:pb-0 overflow-x-hidden`}>{children}</main>
 
       {/* Features Section - Moved from footer */}
       <div className="bg-gray-900 pt-10 mb-0 flex items-center">
