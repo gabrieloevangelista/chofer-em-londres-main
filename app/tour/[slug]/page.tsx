@@ -70,7 +70,7 @@ export default function TourDetails({ params }: PageProps) {
         {/* Banner Rotativo */}
         <div className="w-full h-[400px] relative">
           <ImageSlider
-            images={[tour.image, '/placeholder.svg', '/placeholder.svg']}
+            images={[tour.image]}
             alt={tour.name}
           />
         </div>
