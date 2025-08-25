@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check-env": "tsx scripts/check-env.ts",
+    "prepare-vercel": "tsx scripts/prepare-vercel-deploy.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
