@@ -4,6 +4,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "1",
     name: "City Tour de Londres",
+    slug: "city-tour-de-londres",
     image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1920&auto=format&fit=crop",
     duration: "8 horas",
     price: 950,
@@ -13,6 +14,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "2",
     name: "Tour Estádios de Futebol",
+    slug: "tour-estadios-de-futebol",
     image: "https://images.unsplash.com/photo-1590739293931-a0a561d4a6d9?q=80&w=1920&auto=format&fit=crop",
     duration: "6 horas",
     price: 750,
@@ -21,6 +23,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "3",
     name: "Museus de Londres",
+    slug: "museus-de-londres",
     image: "https://images.unsplash.com/photo-1574322454798-e667e5a73d0f?q=80&w=1920&auto=format&fit=crop",
     duration: "7 horas",
     price: 800,
@@ -30,6 +33,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "4",
     name: "Downton Abbey",
+    slug: "downton-abbey",
     image: "https://images.pexels.com/photos/208701/pexels-photo-208701.jpeg?auto=compress&cs=tinysrgb&w=1920",
     duration: "6 horas",
     price: 850,
@@ -38,6 +42,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "5",
     name: "Londres à Noite",
+    slug: "londres-a-noite",
     image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?q=80&w=1920&auto=format&fit=crop",
     duration: "6 horas",
     price: 850,
@@ -47,6 +52,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "6",
     name: "Londres a Paris",
+    slug: "londres-a-paris",
     image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1920&auto=format&fit=crop",
     duration: "12 horas",
     price: 1500,
@@ -55,6 +61,7 @@ export const attractions: TouristAttraction[] = [
   {
     id: "7",
     name: "Stonehenge e Bath",
+    slug: "stonehenge-e-bath",
     image: "https://images.unsplash.com/photo-1564310349545-4a0f83a8a7a9?q=80&w=1920&auto=format&fit=crop",
     duration: "10 horas",
     price: 1200,

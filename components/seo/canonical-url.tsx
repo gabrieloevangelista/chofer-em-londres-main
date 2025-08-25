@@ -17,6 +17,11 @@ export function useCanonicalUrl(customPath?: string): string {
   const pathname = useSafePathname();
   const path = customPath || pathname;
   
+  // Verifica se path não é null antes de usar split
+  if (!path) {
+    return `${siteConfig.url}/`;
+  }
+  
   // Remove query parameters e hash fragments (se houver)
   const cleanPath = path.split('?')[0].split('#')[0];
   

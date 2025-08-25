@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   PaymentElement,
   useStripe,
@@ -171,7 +171,7 @@ export function StripePaymentForm({ onSuccess, onError, total, clientSecret }: S
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
-        Ao clicar em "Pagar", você concorda com nossos{' '}
+        Ao clicar em &quot;Pagar&quot;, você concorda com nossos{' '}
         <a href="/legal/termos-de-uso" className="text-primary hover:underline">
           Termos de Uso
         </a>{' '}

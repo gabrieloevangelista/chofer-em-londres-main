@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getTourBySlug } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
 import {
-  Star,
+
   Clock,
   Users,
   MapPin,

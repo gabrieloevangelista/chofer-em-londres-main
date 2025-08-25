@@ -6,13 +6,13 @@ import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight, PoundSterling, Shield, CheckCircle } from "lucide-react"
 import { getTourBySlug } from "@/services/tour-service"
-import { createAppointment } from "@/services/tour-service"
+
 import type { TouristAttraction } from "@/types/tourist-attraction"
 import { toast } from "@/components/ui/use-toast"
-import Image from "next/image"
+
 import {
   Popover,
   PopoverContent,
@@ -583,7 +583,7 @@ export default function CheckoutPage({ params }: PageProps) {
                         <div>
                           <h4 className="font-semibold text-blue-900 mb-2">Próximo passo: Pagamento Seguro</h4>
                           <p className="text-blue-800 text-sm mb-4">
-                            Ao clicar em "Prosseguir para Pagamento", seus dados serão salvos em nosso sistema 
+                            Ao clicar em &quot;Prosseguir para Pagamento&quot;, seus dados serão salvos em nosso sistema 
                             e você será redirecionado para a plataforma segura do Stripe para finalizar o pagamento.
                           </p>
                           <div className="flex items-center space-x-2 text-sm text-blue-700">

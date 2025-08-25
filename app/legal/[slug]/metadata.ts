@@ -1,5 +1,3 @@
-import { generateMetadata } from '../../../lib/metadata';
-
 type Props = {
   params: { slug: string };
 };

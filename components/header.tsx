@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Home, MapIcon, Plane, Info, Phone, Search, Menu, X, Calendar } from "lucide-react"
+import { Home, MapIcon, Plane, Info, Phone, Search, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SearchModal } from "./search-modal"
 import { Logo } from "./logo"

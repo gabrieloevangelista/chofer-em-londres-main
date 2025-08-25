@@ -97,10 +97,11 @@ export default function Home() {
     const shine = button?.querySelector(".shine-effect")
 
     if (button && shine) {
-      const handleMouseMove = (e: MouseEvent) => {
+      const handleMouseMove = (e: Event) => {
+        const mouseEvent = e as MouseEvent
         const rect = button.getBoundingClientRect()
-        const x = ((e.clientX - rect.left) / rect.width) * 100
-        const y = ((e.clientY - rect.top) / rect.height) * 100
+        const x = ((mouseEvent.clientX - rect.left) / rect.width) * 100
+        const y = ((mouseEvent.clientY - rect.top) / rect.height) * 100
 
         shine.setAttribute("style", `--x: ${x}%; --y: ${y}%; opacity: 1;`)
       }
