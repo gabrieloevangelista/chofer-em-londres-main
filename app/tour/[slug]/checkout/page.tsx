@@ -238,6 +238,98 @@ export default function CheckoutPage({ params }: PageProps) {
     })
   }
 
+  // Novo: Salvar e redirecionar para Stripe Checkout com productId do City Tour
+  const saveBookingAndRedirectToStripeCheckout = async () => {
+    if (!tour) {
+      throw new Error("Tour não encontrado")
+    }
+    setIsProcessing(true)
+
+    try {
+      // Salvar reserva
+      const appointmentData = {
+        tour_id: tour.id,
+        tour_name: tour.name,
+        customer_name: formData.name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        tour_date: formData.date?.toISOString().split('T')[0] || '',
+        passengers: parseInt(formData.passengers),
+        luggage: parseInt(formData.luggage),
+        hotel: formData.hotel,
+        flight_number: formData.flight || null,
+        total_price: tour.price,
+        status: 'pending'
+      }
+
+      const bookingResponse = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appointmentData),
+      })
+
+      if (!bookingResponse.ok) {
+        const errorText = await bookingResponse.text()
+        throw new Error(`Erro ao salvar reserva: ${errorText}`)
+      }
+
+      // Criar sessão de checkout do Stripe usando productId
+      const createSessionBody = {
+        tourId: tour.id,
+        tourName: tour.name,
+        price: tour.price,
+        slug: tour.slug,
+        productId: 'prod_Svvpti4om13dE6', // City Tour em Londres
+        customerData: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          date: formData.date?.toISOString().split('T')[0] || '',
+          passengers: formData.passengers,
+          hotel: formData.hotel,
+          flight: formData.flight || '',
+        },
+      }
+
+      const createSessionRes = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createSessionBody),
+      })
+
+      if (!createSessionRes.ok) {
+        const errorText = await createSessionRes.text()
+        throw new Error(`Erro ao criar sessão de checkout: ${errorText}`)
+      }
+
+      const { sessionUrl } = await createSessionRes.json()
+      if (!sessionUrl) throw new Error('URL da sessão não retornada')
+
+      // Redirecionar para o Stripe Checkout
+      window.location.href = sessionUrl
+    } catch (error) {
+      console.error('Erro no redirecionamento para pagamento:', error)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível iniciar o pagamento. Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handler para decidir o fluxo de pagamento
+  const handleProceedToPayment = () => {
+    if (tour?.slug === 'city-tour') {
+      // Usar Stripe Checkout com productId fornecido
+      saveBookingAndRedirectToStripeCheckout()
+    } else {
+      // Manter fluxo com PaymentIntent incorporado
+      saveBookingAndCreatePaymentIntent()
+    }
+  }
+
   const handleNextStep = () => {
     if (!validateStep(currentStep)) {
       return
@@ -648,14 +740,14 @@ export default function CheckoutPage({ params }: PageProps) {
                             Voltar
                           </Button>
                           <Button 
-                            onClick={saveBookingAndCreatePaymentIntent} 
+                            onClick={handleProceedToPayment} 
                             size="lg" 
                             disabled={isProcessing}
                             className="bg-green-600 hover:bg-green-700"
                           >
                             {isProcessing ? (
                               <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                <div className="animate-spin rounded-full h-4 w-4"></div>
                                 Processando...
                               </>
                             ) : (

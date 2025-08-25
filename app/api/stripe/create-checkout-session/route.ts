@@ -4,8 +4,8 @@ import { stripe } from '@/lib/stripe-config'
 export async function POST(request: NextRequest) {
   try {
     console.log('Recebendo solicitação para criar sessão de checkout...');
-    const { tourId, tourName, price, customerData } = await request.json()
-    console.log('Dados recebidos:', { tourId, tourName, price, customerData });
+    const { tourId, tourName, price, customerData, productId, slug } = await request.json()
+    console.log('Dados recebidos:', { tourId, tourName, price, customerData, productId, slug });
 
     // Verificar se a chave do Stripe está configurada
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -17,21 +17,57 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Criando sessão do Stripe...');
-    const sessionConfig = {
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: tourName,
-              description: `Tour em Londres - ${customerData.passengers} passageiro(s)`,
-            },
-            unit_amount: Math.round(price * 100), // Convert to pence
+
+    // Determinar line item com base em productId (usando Price) ou price_data com product_data
+    let lineItem: any
+
+    if (productId) {
+      // Tentar usar o price padrão do produto; se não houver, criar um Price com o valor enviado
+      let priceId: string | null = null
+      try {
+        const product = await stripe.products.retrieve(productId as string, {
+          expand: ['default_price'],
+        })
+        // default_price pode vir como ID (string) ou como objeto expandido
+        if (typeof product.default_price === 'string') {
+          priceId = product.default_price
+        } else if (product.default_price && 'id' in product.default_price) {
+          priceId = (product.default_price as any).id
+        }
+      } catch (e) {
+        console.warn('Não foi possível recuperar o produto no Stripe, criando um Price novo vinculado ao productId...')
+      }
+
+      if (!priceId) {
+        const createdPrice = await stripe.prices.create({
+          unit_amount: Math.round(price * 100),
+          currency: 'gbp',
+          product: productId,
+        })
+        priceId = createdPrice.id
+      }
+
+      lineItem = {
+        price: priceId,
+        quantity: 1,
+      }
+    } else {
+      lineItem = {
+        price_data: {
+          currency: 'gbp',
+          product_data: {
+            name: tourName,
+            description: `Tour em Londres - ${customerData.passengers} passageiro(s)`,
           },
-          quantity: 1,
+          unit_amount: Math.round(price * 100), // Convert to pence
         },
-      ],
+        quantity: 1,
+      }
+    }
+
+    const sessionConfig: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+      payment_method_types: ['card'],
+      line_items: [lineItem],
       customer_email: customerData.email,
       metadata: {
         tourId: tourId.toString(),
@@ -46,7 +82,7 @@ export async function POST(request: NextRequest) {
       },
       mode: 'payment',
       success_url: `${request.nextUrl.origin}/tour/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/tour/${tourId}/checkout?cancelled=true`,
+      cancel_url: `${request.nextUrl.origin}/tour/${slug ?? tourId}/checkout?cancelled=true`,
     };
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
