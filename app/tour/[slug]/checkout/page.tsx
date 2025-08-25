@@ -9,6 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarIcon, CreditCard, MapPin, Clock, Users, ChevronLeft, ChevronRight, PoundSterling, Shield, CheckCircle } from "lucide-react"
 import { getTourBySlug } from "@/services/tour-service"
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements } from "@stripe/react-stripe-js"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
+
+// Carregue o Stripe fora do componente para evitar recriações
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
 import type { TouristAttraction } from "@/types/tourist-attraction"
 import { toast } from "@/components/ui/use-toast"
@@ -111,7 +117,10 @@ export default function CheckoutPage({ params }: PageProps) {
     return Object.keys(newErrors).length === 0
   }
 
-  const saveBookingAndRedirectToStripe = async () => {
+  const [clientSecret, setClientSecret] = useState<string>("")
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+
+  const saveBookingAndCreatePaymentIntent = async () => {
     if (!tour) {
       throw new Error("Tour não encontrado")
     }
@@ -156,52 +165,49 @@ export default function CheckoutPage({ params }: PageProps) {
       const bookingResult = await bookingResponse.json()
       console.log('Reserva salva com sucesso:', bookingResult)
 
-      // 2. Criar sessão de checkout do Stripe
-      console.log('Iniciando criação da sessão de checkout do Stripe...');
-      const checkoutData = {
-        tourId: tour.id,
-        tourName: tour.name,
-        price: tour.price,
-        customerData: {
-          name: formData.get('name'),
-          email: formData.get('email'),
-          phone: formData.get('phone'),
-          date: formData.get('date'),
-          passengers: formData.get('passengers'),
-          hotel: formData.get('hotel'),
-          flight: formData.get('flight'),
-        },
+      // 2. Criar payment intent do Stripe
+      console.log('Criando payment intent do Stripe...');
+      const paymentIntentData = {
+        amount: tour.price * 100, // Stripe usa centavos
+        currency: 'gbp',
+        email: formData.email,
+        metadata: {
+          tour_id: tour.id,
+          tour_name: tour.name,
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          tour_date: formData.date?.toISOString().split('T')[0] || '',
+          passengers: formData.passengers,
+          booking_id: bookingResult.id || 'unknown'
+        }
       };
       
-      console.log('Dados para checkout:', checkoutData);
-      
-      const checkoutResponse = await fetch('/api/stripe/create-checkout-session', {
+      const paymentIntentResponse = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(checkoutData),
+        body: JSON.stringify(paymentIntentData),
       })
 
-      if (!checkoutResponse.ok) {
-        const errorText = await checkoutResponse.text()
-        console.error('Erro ao criar sessão de pagamento:', errorText)
-        throw new Error(`Erro ao criar sessão de pagamento: ${errorText}`)
+      if (!paymentIntentResponse.ok) {
+        const errorText = await paymentIntentResponse.text()
+        console.error('Erro ao criar payment intent:', errorText)
+        throw new Error(`Erro ao criar payment intent: ${errorText}`)
       }
 
-      const responseData = await checkoutResponse.json()
-      console.log('Resposta da API de checkout:', responseData);
+      const { clientSecret } = await paymentIntentResponse.json()
       
-      const { sessionUrl, error } = responseData
-
-      if (error || !sessionUrl) {
-        console.error('Erro na resposta da API:', error);
-        throw new Error(error || "URL da sessão do Stripe não foi retornada")
+      if (!clientSecret) {
+        throw new Error("Client Secret não foi retornado")
       }
 
-      // 3. Redirecionar para o Stripe
-      console.log('Redirecionando para:', sessionUrl);
-      window.location.href = sessionUrl
+      // 3. Mostrar formulário de pagamento
+      setClientSecret(clientSecret)
+      setShowPaymentForm(true)
+      setCurrentStep(3) // Avançar para o passo de pagamento
+      setIsProcessing(false)
 
     } catch (error) {
       console.error('Erro ao processar pagamento:', error)
@@ -212,6 +218,24 @@ export default function CheckoutPage({ params }: PageProps) {
       })
       setIsProcessing(false)
     }
+  }
+  
+  const handlePaymentSuccess = () => {
+    toast({
+      title: "Sucesso!",
+      description: "Pagamento processado com sucesso!",
+      variant: "default",
+    })
+    // Redirecionar para página de sucesso
+    window.location.href = `/tour/success?tour=${tour?.name}`
+  }
+  
+  const handlePaymentError = (errorMessage: string) => {
+    toast({
+      title: "Erro no pagamento",
+      description: errorMessage,
+      variant: "destructive",
+    })
   }
 
   const handleNextStep = () => {
@@ -464,182 +488,200 @@ export default function CheckoutPage({ params }: PageProps) {
                 {/* ETAPA 3: Confirmação e Redirecionamento para Stripe */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">Confirmação da Reserva</h2>
-                      <p className="text-gray-600">Revise seus dados antes de prosseguir para o pagamento</p>
-                    </div>
+                    {!showPaymentForm ? (
+                      <>
+                        <div className="mb-6">
+                          <h2 className="text-xl font-semibold mb-2">Confirmação da Reserva</h2>
+                          <p className="text-gray-600">Revise seus dados antes de prosseguir para o pagamento</p>
+                        </div>
 
-                    {/* Bilhete de Reserva - Estilo Passagem Aérea */}
-                    <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg overflow-hidden shadow-lg">
-                      {/* Header do Bilhete */}
-                      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-lg font-bold">TICKET</h3>
-                            <p className="text-blue-100 text-sm">Chofer em Londres</p>
+                        {/* Bilhete de Reserva - Estilo Passagem Aérea */}
+                        <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg overflow-hidden shadow-lg">
+                          {/* Header do Bilhete */}
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h3 className="text-lg font-bold">TICKET</h3>
+                                <p className="text-blue-100 text-sm">Chofer em Londres</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-blue-100">Código da Reserva</p>
+                                <p className="font-mono text-lg font-bold">{Math.random().toString(36).substr(2, 8).toUpperCase()}</p>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-blue-100">Código da Reserva</p>
-                            <p className="font-mono text-lg font-bold">{Math.random().toString(36).substr(2, 8).toUpperCase()}</p>
+
+                          {/* Corpo do Bilhete */}
+                          <div className="p-6">
+                            {/* Informações do Tour */}
+                            <div className="border-b border-gray-200 pb-4 mb-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-bold text-lg text-gray-900">{tour?.name}</h4>
+                                  <p className="text-gray-600 flex items-center mt-1">
+                                    <MapPin className="w-4 h-4 mr-1" />
+                                    Londres, Reino Unido
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-blue-600">£{tour?.price}</p>
+                                  <p className="text-sm text-gray-500">por pessoa</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Detalhes da Viagem */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                              {/* Coluna 1: Passageiro */}
+                              <div className="space-y-3">
+                                <div className="border-l-4 border-blue-500 pl-3">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Passageiro Principal</p>
+                                  <p className="font-semibold text-gray-900">{formData.name}</p>
+                                  <p className="text-sm text-gray-600">{formData.email}</p>
+                                  <p className="text-sm text-gray-600">{formData.phone}</p>
+                                </div>
+                              </div>
+
+                              {/* Coluna 2: Data e Detalhes */}
+                              <div className="space-y-3">
+                                <div className="border-l-4 border-green-500 pl-3">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Data do Tour</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {formData.date ? format(formData.date, "PPP", { locale: ptBR }) : 'Não selecionada'}
+                                  </p>
+                                  <div className="flex items-center space-x-4 mt-2">
+                                    <div className="flex items-center">
+                                      <Users className="w-4 h-4 mr-1 text-gray-500" />
+                                      <span className="text-sm">{formData.passengers} passageiro(s)</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                      </svg>
+                                      <span className="text-sm">{formData.luggage} mala(s)</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Coluna 3: Local */}
+                              <div className="space-y-3">
+                                <div className="border-l-4 border-orange-500 pl-3">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Ponto de Encontro</p>
+                                  <p className="font-semibold text-gray-900">Hotel/Endereço</p>
+                                  <p className="text-sm text-gray-600">{formData.hotel}</p>
+                                  {formData.flight && (
+                                    <div className="mt-2">
+                                      <p className="text-xs text-gray-500 uppercase tracking-wide">Voo</p>
+                                      <p className="text-sm font-medium">{formData.flight}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Rodapé do Bilhete */}
+                            <div className="border-t border-gray-200 pt-4 mt-4">
+                              <div className="flex justify-between items-center text-sm text-gray-600">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex items-center">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    <span>Duração: {tour?.duration}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+                                    <span>Confirmação Imediata</span>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-gray-500">Emitido em</p>
+                                  <p className="font-mono">{format(new Date(), "dd/MM/yyyy HH:mm")}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Linha Perfurada */}
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-dashed border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center">
+                              <div className="bg-white px-4">
+                                <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Corpo do Bilhete */}
-                      <div className="p-6">
-                        {/* Informações do Tour */}
-                        <div className="border-b border-gray-200 pb-4 mb-4">
-                          <div className="flex justify-between items-start">
+                        {/* Aviso sobre redirecionamento */}
+                        <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                          <div className="flex items-start space-x-3">
+                            <Shield className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
                             <div>
-                              <h4 className="font-bold text-lg text-gray-900">{tour?.name}</h4>
-                              <p className="text-gray-600 flex items-center mt-1">
-                                <MapPin className="w-4 h-4 mr-1" />
-                                Londres, Reino Unido
+                              <h4 className="font-semibold text-blue-900 mb-2">Próximo passo: Pagamento Seguro</h4>
+                              <p className="text-blue-800 text-sm mb-4">
+                                Ao clicar em &quot;Prosseguir para Pagamento&quot;, seus dados serão salvos em nosso sistema 
+                                e você será redirecionado para a plataforma segura do Stripe para finalizar o pagamento.
                               </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-blue-600">£{tour?.price}</p>
-                              <p className="text-sm text-gray-500">por pessoa</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Detalhes da Viagem */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                          {/* Coluna 1: Passageiro */}
-                          <div className="space-y-3">
-                            <div className="border-l-4 border-blue-500 pl-3">
-                              <p className="text-xs text-gray-500 uppercase tracking-wide">Passageiro Principal</p>
-                              <p className="font-semibold text-gray-900">{formData.name}</p>
-                              <p className="text-sm text-gray-600">{formData.email}</p>
-                              <p className="text-sm text-gray-600">{formData.phone}</p>
-                            </div>
-                          </div>
-
-                          {/* Coluna 2: Data e Detalhes */}
-                          <div className="space-y-3">
-                            <div className="border-l-4 border-green-500 pl-3">
-                              <p className="text-xs text-gray-500 uppercase tracking-wide">Data do Tour</p>
-                              <p className="font-semibold text-gray-900">
-                                {formData.date ? format(formData.date, "PPP", { locale: ptBR }) : 'Não selecionada'}
-                              </p>
-                              <div className="flex items-center space-x-4 mt-2">
-                                <div className="flex items-center">
-                                  <Users className="w-4 h-4 mr-1 text-gray-500" />
-                                  <span className="text-sm">{formData.passengers} passageiro(s)</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                  </svg>
-                                  <span className="text-sm">{formData.luggage} mala(s)</span>
-                                </div>
+                              <div className="flex items-center space-x-2 text-sm text-blue-700">
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Pagamento 100% seguro com Stripe</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-sm text-blue-700 mt-1">
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Seus dados estão protegidos</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-sm text-blue-700 mt-1">
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Confirmação imediata por e-mail</span>
                               </div>
                             </div>
                           </div>
-
-                          {/* Coluna 3: Local */}
-                          <div className="space-y-3">
-                            <div className="border-l-4 border-orange-500 pl-3">
-                              <p className="text-xs text-gray-500 uppercase tracking-wide">Ponto de Encontro</p>
-                              <p className="font-semibold text-gray-900">Hotel/Endereço</p>
-                              <p className="text-sm text-gray-600">{formData.hotel}</p>
-                              {formData.flight && (
-                                <div className="mt-2">
-                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Voo</p>
-                                  <p className="text-sm font-medium">{formData.flight}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
                         </div>
 
-                        {/* Rodapé do Bilhete */}
-                        <div className="border-t border-gray-200 pt-4 mt-4">
-                          <div className="flex justify-between items-center text-sm text-gray-600">
-                            <div className="flex items-center space-x-4">
-                              <div className="flex items-center">
-                                <Clock className="w-4 h-4 mr-1" />
-                                <span>Duração: {tour?.duration}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
-                                <span>Confirmação Imediata</span>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-gray-500">Emitido em</p>
-                              <p className="font-mono">{format(new Date(), "dd/MM/yyyy HH:mm")}</p>
-                            </div>
-                          </div>
+                        <div className="flex justify-between pt-6">
+                          <Button variant="outline" onClick={handlePrevStep} disabled={isProcessing}>
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            Voltar
+                          </Button>
+                          <Button 
+                            onClick={saveBookingAndCreatePaymentIntent} 
+                            size="lg" 
+                            disabled={isProcessing}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {isProcessing ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Processando...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Prosseguir para Pagamento
+                              </>
+                            )}
+                          </Button>
                         </div>
-                      </div>
-
-                      {/* Linha Perfurada */}
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-dashed border-gray-300"></div>
-                        </div>
-                        <div className="relative flex justify-center">
-                          <div className="bg-white px-4">
-                            <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Aviso sobre redirecionamento */}
-                    <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-                      <div className="flex items-start space-x-3">
-                        <Shield className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
-                        <div>
-                          <h4 className="font-semibold text-blue-900 mb-2">Próximo passo: Pagamento Seguro</h4>
-                          <p className="text-blue-800 text-sm mb-4">
-                            Ao clicar em &quot;Prosseguir para Pagamento&quot;, seus dados serão salvos em nosso sistema 
-                            e você será redirecionado para a plataforma segura do Stripe para finalizar o pagamento.
-                          </p>
-                          <div className="flex items-center space-x-2 text-sm text-blue-700">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Pagamento 100% seguro com Stripe</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-blue-700 mt-1">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Seus dados estão protegidos</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-blue-700 mt-1">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Confirmação imediata por e-mail</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between pt-6">
-                      <Button variant="outline" onClick={handlePrevStep} disabled={isProcessing}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Voltar
-                      </Button>
-                      <Button 
-                        onClick={saveBookingAndRedirectToStripe} 
-                        size="lg" 
-                        disabled={isProcessing}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Processando...
-                          </>
-                        ) : (
-                          <>
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Prosseguir para Pagamento
-                          </>
+                      </>
+                    ) : (
+                      <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-bold mb-6 text-center">Pagamento Seguro</h2>
+                        {clientSecret && (
+                          <Elements stripe={stripePromise} options={{ clientSecret }}>
+                            <StripePaymentForm 
+                              clientSecret={clientSecret}
+                              total={tour?.price || 0}
+                              onSuccess={handlePaymentSuccess}
+                              onError={handlePaymentError}
+                            />
+                          </Elements>
                         )}
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
