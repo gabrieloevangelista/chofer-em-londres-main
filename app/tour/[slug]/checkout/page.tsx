@@ -119,6 +119,8 @@ export default function CheckoutPage({ params }: PageProps) {
     setIsProcessing(true)
 
     try {
+      console.log('Iniciando processo de checkout...');
+      
       // 1. Salvar dados da reserva no banco
       const appointmentData = {
         tour_id: tour.id,
@@ -134,6 +136,8 @@ export default function CheckoutPage({ params }: PageProps) {
         total_price: tour.price,
         status: 'pending'
       }
+      
+      console.log('Dados da reserva:', appointmentData);
 
       const bookingResponse = await fetch('/api/bookings/create', {
         method: 'POST',
@@ -146,47 +150,57 @@ export default function CheckoutPage({ params }: PageProps) {
       if (!bookingResponse.ok) {
         const errorText = await bookingResponse.text()
         console.error('Erro ao salvar reserva:', errorText)
-        throw new Error('Erro ao salvar reserva')
+        throw new Error(`Erro ao salvar reserva: ${errorText}`)
       }
 
       const bookingResult = await bookingResponse.json()
       console.log('Reserva salva com sucesso:', bookingResult)
 
       // 2. Criar sessão de checkout do Stripe
+      console.log('Iniciando criação da sessão de checkout do Stripe...');
+      const checkoutData = {
+        tourId: tour.id,
+        tourName: tour.name,
+        price: tour.price,
+        customerData: {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          date: formData.get('date'),
+          passengers: formData.get('passengers'),
+          hotel: formData.get('hotel'),
+          flight: formData.get('flight'),
+        },
+      };
+      
+      console.log('Dados para checkout:', checkoutData);
+      
       const checkoutResponse = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tourId: tour.id,
-          tourName: tour.name,
-          price: tour.price,
-          customerData: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            date: formData.date?.toISOString().split('T')[0],
-            passengers: formData.passengers,
-            hotel: formData.hotel,
-            flight: formData.flight,
-          },
-        }),
+        body: JSON.stringify(checkoutData),
       })
 
       if (!checkoutResponse.ok) {
         const errorText = await checkoutResponse.text()
         console.error('Erro ao criar sessão de pagamento:', errorText)
-        throw new Error('Erro ao criar sessão de pagamento')
+        throw new Error(`Erro ao criar sessão de pagamento: ${errorText}`)
       }
 
-      const { sessionUrl, error } = await checkoutResponse.json()
+      const responseData = await checkoutResponse.json()
+      console.log('Resposta da API de checkout:', responseData);
+      
+      const { sessionUrl, error } = responseData
 
       if (error || !sessionUrl) {
-        throw new Error(error || "Erro ao criar sessão de pagamento")
+        console.error('Erro na resposta da API:', error);
+        throw new Error(error || "URL da sessão do Stripe não foi retornada")
       }
 
       // 3. Redirecionar para o Stripe
+      console.log('Redirecionando para:', sessionUrl);
       window.location.href = sessionUrl
 
     } catch (error) {
