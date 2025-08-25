@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LayoutWrapper } from "../../components/layout-wrapper"
 import { TourCard } from "../../components/tour-card"
 import { TourCardSkeleton } from "../../components/tour-card-skeleton"
 import type { Category, TouristAttraction } from "../../types/tourist-attraction"
@@ -39,7 +38,6 @@ export default function Tours() {
   )
 
   return (
-    <LayoutWrapper>
       <div className="container-custom py-16 pt-28">
         <h1 className="text-3xl font-bold mb-10 text-primary">Tours em Londres</h1>
 
@@ -111,6 +109,5 @@ export default function Tours() {
           </div>
         )}
       </div>
-    </LayoutWrapper>
   )
 }

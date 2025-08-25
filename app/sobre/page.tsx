@@ -1,10 +1,8 @@
-import { LayoutWrapper } from "../../components/layout-wrapper"
 import { Car, Award, Users, Clock } from "lucide-react"
 import Image from "next/image"
 
 export default function Sobre() {
   return (
-    <LayoutWrapper>
       <div className="container-custom mx-auto py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Sobre Chofer em Londres</h1>
 
@@ -126,6 +124,5 @@ export default function Sobre() {
           </div>
         </div>
       </div>
-    </LayoutWrapper>
   )
 }

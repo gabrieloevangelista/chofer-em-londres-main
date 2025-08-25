@@ -1,6 +1,5 @@
 "use client"
 
-import { LayoutWrapper } from "../../components/layout-wrapper"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -50,7 +49,6 @@ export default function Transfer() {
   }
 
   return (
-    <LayoutWrapper>
       <div className="container-custom mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-12 text-center">Solicitar Transfer</h1>
 
@@ -281,6 +279,5 @@ export default function Transfer() {
           </div>
         </div>
       </div>
-    </LayoutWrapper>
   )
 }
