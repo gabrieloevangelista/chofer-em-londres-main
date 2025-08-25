@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect, use } from "react"
 import { notFound } from "next/navigation"
-import { LayoutWrapper } from "@/components/layout-wrapper"
+// import { LayoutWrapper } from "@/components/layout-wrapper" // Removido para evitar footer duplicado
 import { Skeleton } from "@/components/ui/skeleton"
 import { getTourBySlug } from "@/services/tour-service"
 import type { TouristAttraction } from "@/types/tourist-attraction"
@@ -19,8 +19,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { ImageSlider } from "@/components/image-slider"
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon"
 
@@ -34,11 +32,6 @@ export default function TourDetails({ params }: PageProps) {
   const { slug } = use(params)
   const [tour, setTour] = useState<TouristAttraction | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
-  const [rating, setRating] = useState(0)
-  const [review, setReview] = useState("")
-  const [reviewName, setReviewName] = useState("")
-  const [reviewEmail, setReviewEmail] = useState("")
-  const [question, setQuestion] = useState("")
 
   useEffect(() => {
     async function loadTour() {
@@ -72,7 +65,7 @@ export default function TourDetails({ params }: PageProps) {
   }
 
   return (
-    <LayoutWrapper>
+    <div className="w-full overflow-x-hidden">
       <div className="w-full">
         {/* Banner Rotativo */}
         <div className="w-full h-[400px] relative">
@@ -123,11 +116,10 @@ export default function TourDetails({ params }: PageProps) {
               </div>
 
               <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid grid-cols-4 gap-4">
+                <TabsList className="grid grid-cols-3 gap-4">
                   <TabsTrigger value="details">Detalhes</TabsTrigger>
                   <TabsTrigger value="itinerary">Itinerário</TabsTrigger>
-                  <TabsTrigger value="reviews">Avaliações</TabsTrigger>
-                  <TabsTrigger value="faq">Perguntas</TabsTrigger>
+                  <TabsTrigger value="faq">FAQ</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="details" className="mt-6">
@@ -150,57 +142,31 @@ export default function TourDetails({ params }: PageProps) {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="reviews" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold mb-4">Deixe sua Avaliação</h3>
-                      <div className="space-y-4">
-                        <div className="flex gap-2">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-6 h-6 cursor-pointer ${
-                                rating >= star ? "fill-primary text-primary" : "text-gray-300"
-                              }`}
-                              onClick={() => setRating(star)}
-                            />
-                          ))}
-                        </div>
-                        <Input
-                          placeholder="Seu nome"
-                          value={reviewName}
-                          onChange={(e) => setReviewName(e.target.value)}
-                        />
-                        <Input
-                          placeholder="Seu email"
-                          type="email"
-                          value={reviewEmail}
-                          onChange={(e) => setReviewEmail(e.target.value)}
-                        />
-                        <Textarea
-                          placeholder="Sua avaliação"
-                          value={review}
-                          onChange={(e) => setReview(e.target.value)}
-                        />
-                        <Button>Enviar Avaliação</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+
 
                 <TabsContent value="faq" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <Textarea
-                          placeholder="Faça sua pergunta"
-                          value={question}
-                          onChange={(e) => setQuestion(e.target.value)}
-                        />
-                        <Button className="w-full">Enviar Pergunta</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="space-y-6">
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-semibold mb-2">Qual é a política de cancelamento?</h3>
+                      <p className="text-gray-600">Cancelamento gratuito até 24 horas antes do tour. Para cancelamentos com menos de 24 horas, será cobrada uma taxa de 50%.</p>
+                    </div>
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-semibold mb-2">O que está incluído no tour?</h3>
+                      <p className="text-gray-600">Transporte em veículo confortável, motorista/guia experiente, e paradas nos principais pontos turísticos. Ingressos para atrações não estão inclusos.</p>
+                    </div>
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-semibold mb-2">Quantas pessoas podem participar?</h3>
+                      <p className="text-gray-600">Nossos veículos comportam até 8 passageiros confortavelmente. Para grupos maiores, consulte-nos para opções especiais.</p>
+                    </div>
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-semibold mb-2">O tour funciona em qualquer clima?</h3>
+                      <p className="text-gray-600">Sim, nossos tours funcionam independente do clima. Em caso de condições extremas, entraremos em contato para reagendar.</p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Como posso entrar em contato?</h3>
+                      <p className="text-gray-600">Você pode nos contatar pelo WhatsApp, email ou telefone. Respondemos rapidamente a todas as consultas.</p>
+                    </div>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -246,6 +212,6 @@ export default function TourDetails({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </LayoutWrapper>
+    </div>
   )
 }

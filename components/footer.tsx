@@ -29,7 +29,7 @@ export function Footer() {
             <div className="flex flex-col items-center md:items-start space-y-3 mb-6">
               <div className="relative w-[120px] h-[120px]">
                 <Image
-                  src="/chofer-logo.png"
+                  src="/LogoMain.png"
                   alt="Chofer em Londres Logo"
                   fill
                   style={{ objectFit: "contain" }}

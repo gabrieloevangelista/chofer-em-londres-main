@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { LayoutWrapper } from "../components/layout-wrapper"
+// import { LayoutWrapper } from "../components/layout-wrapper" // Removido para evitar footer duplicado
 import { TourCard } from "../components/tour-card"
 import { TourCardSkeleton } from "../components/tour-card-skeleton"
 import { cn } from "@/lib/utils"
@@ -126,7 +126,7 @@ export default function Home() {
   }, [])
 
   return (
-    <LayoutWrapper noPaddingTop>
+    <div className="w-full overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative h-screen overflow-hidden">
         <Image
@@ -426,6 +426,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </LayoutWrapper>
+    </div>
   )
 }

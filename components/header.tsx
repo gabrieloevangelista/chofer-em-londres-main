@@ -103,13 +103,7 @@ function HeaderContent() {
               >
                 <Search className="w-5 h-5" />
               </button>
-              <Link
-                href="/contato"
-                className="btn-primary px-4 py-2 rounded-md flex items-center font-medium shadow-lg relative z-20 hover:scale-105 transition-transform cursor-pointer"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Agendar Tour
-              </Link>
+
             </div>
 
             {/* Mobile Actions */}
@@ -121,13 +115,7 @@ function HeaderContent() {
               >
                 <Search className="w-5 h-5" />
               </button>
-              <Link
-                href="/contato"
-                className="btn-primary px-3 py-2 rounded-md flex items-center font-medium shadow-lg relative text-sm"
-              >
-                <Calendar className="w-4 h-4 mr-1" />
-                Agendar
-              </Link>
+
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-all cursor-pointer"

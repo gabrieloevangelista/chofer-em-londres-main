@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from "react"
 import { notFound } from "next/navigation"
-import { LayoutWrapper } from "@/components/layout-wrapper"
+// import { LayoutWrapper } from "@/components/layout-wrapper" // Removido para evitar footer duplicado
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,7 +51,7 @@ export default function CheckoutPage({ params }: PageProps) {
     phone: "",
     date: undefined as Date | undefined,
     passengers: "1",
-    luggage: "0",
+    luggage: "1",
     hotel: "",
     flight: "",
   })
@@ -122,6 +122,7 @@ export default function CheckoutPage({ params }: PageProps) {
       // 1. Salvar dados da reserva no banco
       const appointmentData = {
         tour_id: tour.id,
+        tour_name: tour.name,
         customer_name: formData.name,
         customer_email: formData.email,
         customer_phone: formData.phone,
@@ -222,16 +223,19 @@ export default function CheckoutPage({ params }: PageProps) {
   }
 
   const generateLuggageOptions = () => {
-    return Array.from({ length: 9 }, (_, i) => (
-      <SelectItem key={i} value={i.toString()}>
-        {i} {i === 1 ? 'mala' : 'malas'}
-      </SelectItem>
-    ))
+    return Array.from({ length: 9 }, (_, i) => {
+      const value = i + 1
+      return (
+        <SelectItem key={value} value={value.toString()}>
+          {value} {value === 1 ? 'mala' : 'malas'}
+        </SelectItem>
+      )
+    })
   }
 
   if (isLoading) {
     return (
-      <LayoutWrapper>
+      <div className="w-full overflow-x-hidden">
         <div className="container mx-auto py-8 px-4">
           <div className="flex justify-center items-center min-h-[400px]">
             <div className="text-center">
@@ -240,27 +244,27 @@ export default function CheckoutPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-      </LayoutWrapper>
+      </div>
     )
   }
 
   if (!tour) {
     return (
-      <LayoutWrapper>
+      <div className="w-full overflow-x-hidden">
         <div className="container mx-auto py-8 px-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Tour não encontrado</h1>
             <p>O tour solicitado não foi encontrado.</p>
           </div>
         </div>
-      </LayoutWrapper>
+      </div>
     )
   }
 
   const totalPrice = tour.price
 
   return (
-    <LayoutWrapper>
+    <div className="w-full overflow-x-hidden">
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
@@ -451,47 +455,124 @@ export default function CheckoutPage({ params }: PageProps) {
                       <p className="text-gray-600">Revise seus dados antes de prosseguir para o pagamento</p>
                     </div>
 
-                    {/* Resumo dos dados coletados */}
-                    <div className="bg-gray-50 p-6 rounded-lg space-y-4">
-                      <h3 className="font-semibold text-lg mb-4">Resumo da sua reserva:</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Nome:</p>
-                          <p className="font-medium">{formData.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">E-mail:</p>
-                          <p className="font-medium">{formData.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Telefone:</p>
-                          <p className="font-medium">{formData.phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Data do tour:</p>
-                          <p className="font-medium">
-                            {formData.date ? format(formData.date, "PPP", { locale: ptBR }) : 'Não selecionada'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Hotel/Endereço:</p>
-                          <p className="font-medium">{formData.hotel}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Passageiros:</p>
-                          <p className="font-medium">{formData.passengers}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Malas:</p>
-                          <p className="font-medium">{formData.luggage}</p>
-                        </div>
-                        {formData.flight && (
+                    {/* Bilhete de Reserva - Estilo Passagem Aérea */}
+                    <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg overflow-hidden shadow-lg">
+                      {/* Header do Bilhete */}
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                        <div className="flex justify-between items-center">
                           <div>
-                            <p className="text-sm text-gray-600">Voo:</p>
-                            <p className="font-medium">{formData.flight}</p>
+                            <h3 className="text-lg font-bold">TICKET</h3>
+                            <p className="text-blue-100 text-sm">Chofer em Londres</p>
                           </div>
-                        )}
+                          <div className="text-right">
+                            <p className="text-sm text-blue-100">Código da Reserva</p>
+                            <p className="font-mono text-lg font-bold">{Math.random().toString(36).substr(2, 8).toUpperCase()}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Corpo do Bilhete */}
+                      <div className="p-6">
+                        {/* Informações do Tour */}
+                        <div className="border-b border-gray-200 pb-4 mb-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-bold text-lg text-gray-900">{tour?.name}</h4>
+                              <p className="text-gray-600 flex items-center mt-1">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                Londres, Reino Unido
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-blue-600">£{tour?.price}</p>
+                              <p className="text-sm text-gray-500">por pessoa</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Detalhes da Viagem */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                          {/* Coluna 1: Passageiro */}
+                          <div className="space-y-3">
+                            <div className="border-l-4 border-blue-500 pl-3">
+                              <p className="text-xs text-gray-500 uppercase tracking-wide">Passageiro Principal</p>
+                              <p className="font-semibold text-gray-900">{formData.name}</p>
+                              <p className="text-sm text-gray-600">{formData.email}</p>
+                              <p className="text-sm text-gray-600">{formData.phone}</p>
+                            </div>
+                          </div>
+
+                          {/* Coluna 2: Data e Detalhes */}
+                          <div className="space-y-3">
+                            <div className="border-l-4 border-green-500 pl-3">
+                              <p className="text-xs text-gray-500 uppercase tracking-wide">Data do Tour</p>
+                              <p className="font-semibold text-gray-900">
+                                {formData.date ? format(formData.date, "PPP", { locale: ptBR }) : 'Não selecionada'}
+                              </p>
+                              <div className="flex items-center space-x-4 mt-2">
+                                <div className="flex items-center">
+                                  <Users className="w-4 h-4 mr-1 text-gray-500" />
+                                  <span className="text-sm">{formData.passengers} passageiro(s)</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                  </svg>
+                                  <span className="text-sm">{formData.luggage} mala(s)</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Coluna 3: Local */}
+                          <div className="space-y-3">
+                            <div className="border-l-4 border-orange-500 pl-3">
+                              <p className="text-xs text-gray-500 uppercase tracking-wide">Ponto de Encontro</p>
+                              <p className="font-semibold text-gray-900">Hotel/Endereço</p>
+                              <p className="text-sm text-gray-600">{formData.hotel}</p>
+                              {formData.flight && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Voo</p>
+                                  <p className="text-sm font-medium">{formData.flight}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Rodapé do Bilhete */}
+                        <div className="border-t border-gray-200 pt-4 mt-4">
+                          <div className="flex justify-between items-center text-sm text-gray-600">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center">
+                                <Clock className="w-4 h-4 mr-1" />
+                                <span>Duração: {tour?.duration}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+                                <span>Confirmação Imediata</span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">Emitido em</p>
+                              <p className="font-mono">{format(new Date(), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Linha Perfurada */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-dashed border-gray-300"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                          <div className="bg-white px-4">
+                            <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -612,6 +693,6 @@ export default function CheckoutPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </LayoutWrapper>
+    </div>
   )
 }

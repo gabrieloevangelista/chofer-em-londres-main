@@ -143,13 +143,53 @@ export async function createTransfer(transferData: {
 }) {
   const { data, error } = await supabase
     .from('transfers')
-    .insert(transferData)
-    .select();
+    .insert([transferData])
+    .select()
+    .single();
 
   if (error) {
     console.error('Error creating transfer:', error);
-    return { success: false, error };
+    throw error;
   }
 
-  return { success: true, data: data[0] };
+  return data;
+}
+
+export async function createBooking(bookingData: {
+  tour_id: string;
+  tour_name: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  tour_date: string;
+  passengers: number;
+  luggage?: number;
+  hotel: string;
+  flight_number?: string;
+  total_price: number;
+  status?: string;
+}) {
+  // Por enquanto, vamos usar a tabela appointments existente
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert([{
+      tour_id: bookingData.tour_id,
+      customer_name: bookingData.customer_name,
+      customer_email: bookingData.customer_email,
+      customer_phone: bookingData.customer_phone,
+      appointment_date: bookingData.tour_date,
+      appointment_time: '10:00:00',
+      passengers: bookingData.passengers,
+      special_requests: `Hotel: ${bookingData.hotel}${bookingData.flight_number ? `, Voo: ${bookingData.flight_number}` : ''}`,
+      created_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating booking:', error);
+    throw error;
+  }
+
+  return data;
 }
