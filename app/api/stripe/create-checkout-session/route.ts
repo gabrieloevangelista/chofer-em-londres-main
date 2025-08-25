@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-config'
+import type Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     console.log('Criando sessão do Stripe...');
 
     // Determinar line item com base em productId (usando Price) ou price_data com product_data
-    let lineItem: any
+    let lineItem: Stripe.Checkout.SessionCreateParams.LineItem
 
     if (productId) {
       // Tentar usar o price padrão do produto; se não houver, criar um Price com o valor enviado
@@ -32,10 +33,10 @@ export async function POST(request: NextRequest) {
         if (typeof product.default_price === 'string') {
           priceId = product.default_price
         } else if (product.default_price && 'id' in product.default_price) {
-          priceId = (product.default_price as any).id
+          priceId = product.default_price.id
         }
       } catch (e) {
-        console.warn('Não foi possível recuperar o produto no Stripe, criando um Price novo vinculado ao productId...')
+        console.warn('Não foi possível recuperar o produto no Stripe, criando um Price novo vinculado ao productId...', e)
       }
 
       if (!priceId) {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       }
 
       lineItem = {
-        price: priceId,
+        price: priceId as string,
         quantity: 1,
       }
     } else {
@@ -65,8 +66,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const sessionConfig: Parameters<typeof stripe.checkout.sessions.create>[0] = {
-      payment_method_types: ['card'],
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       line_items: [lineItem],
       customer_email: customerData.email,
       metadata: {
@@ -83,9 +83,9 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       success_url: `${request.nextUrl.origin}/tour/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.nextUrl.origin}/tour/${slug ?? tourId}/checkout?cancelled=true`,
-    };
+    }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const session = await stripe.checkout.sessions.create(sessionParams);
     console.log('Sessão criada com sucesso:', { 
       sessionId: session.id, 
       url: session.url 
@@ -108,5 +108,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
 }

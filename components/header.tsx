@@ -21,7 +21,7 @@ function HeaderContent() {
     if (typeof window !== 'undefined') {
       setCurrentPath(pathname)
     }
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,6 +46,10 @@ function HeaderContent() {
   if (!isMounted) {
     return null
   }
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   const handleNavigation = () => {
     setMobileMenuOpen(false)

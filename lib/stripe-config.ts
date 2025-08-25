@@ -13,6 +13,7 @@ if (stripeSecretKey.includes('your_stripe_secret_key') || stripeSecretKey.includ
 }
 
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2023-10-16",
+  // Usando a versão correta da API
+  apiVersion: "2025-07-30.basil",
   typescript: true,
 })
