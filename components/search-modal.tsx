@@ -23,6 +23,8 @@ function SearchModalContent({ isOpen, onClose }: SearchModalProps) {
 
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     if (isOpen) {
       document.body.style.overflow = "hidden"
       setTimeout(() => {
@@ -33,11 +35,15 @@ function SearchModalContent({ isOpen, onClose }: SearchModalProps) {
     }
 
     return () => {
-      document.body.style.overflow = ""
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = ""
+      }
     }
   }, [isOpen])
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         onClose()

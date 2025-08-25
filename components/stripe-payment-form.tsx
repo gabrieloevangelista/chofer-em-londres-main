@@ -56,7 +56,7 @@ export function StripePaymentForm({ onSuccess, onError, total, clientSecret }: S
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/tour/success`,
+        return_url: typeof window !== 'undefined' ? `${window.location.origin}/tour/success` : 'https://chofer-em-londres-v3.vercel.app/tour/success',
         receipt_email: email,
       },
       redirect: "if_required"

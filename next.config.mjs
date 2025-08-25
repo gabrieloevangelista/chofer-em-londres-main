@@ -3,8 +3,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
-  optimizeFonts: true,
-  swcMinify: true,
   images: {
     remotePatterns: [
       {

@@ -24,6 +24,8 @@ export function Lightbox({
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     // Desabilitar o scroll quando o lightbox estiver aberto
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -38,6 +40,7 @@ export function Lightbox({
       }
     }
 
+    if (typeof window === 'undefined') return;
     window.addEventListener('keydown', handleEsc)
     return () => {
       document.body.style.overflow = 'auto'
