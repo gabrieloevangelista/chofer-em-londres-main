@@ -2,6 +2,9 @@
 const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    // Reduzir uso de memória durante build
+    workerThreads: false,
+    cpus: 1
   },
   images: {
     remotePatterns: [
@@ -10,6 +13,8 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    // Otimizar imagens para build mais rápido
+    minimumCacheTTL: 60,
   },
   eslint: {
     // Ignorar erros de ESLint durante o build para permitir a compilação
@@ -22,7 +27,15 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Otimizações de build
+  swcMinify: true,
   reactStrictMode: true,
+  // Reduzir bundle size
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{member}}',
+    },
+  },
   logging: {
     fetches: {
       fullUrl: true,
